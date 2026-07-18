@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamPay - Built on Arc Network™</title>
+    <title>StreamPay - Gaming Donation Hub</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,7 +20,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .avatar-box { width: 65px; height: 65px; cursor: pointer; border: 2px solid transparent; border-radius: 12px; transition: 0.2s; background: rgba(255,255,255,0.05); }
         .avatar-box.selected { border-color: var(--s); box-shadow: 0 0 15px var(--s); background: rgba(6, 182, 212, 0.1); }
-        .game-tag { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc; font-size: 10px; font-weight: 800; padding: 2px 10px; border-radius: 6px; text-transform: uppercase; }
+        .game-tag { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc; font-size: 9px; font-weight: 800; padding: 2px 10px; border-radius: 6px; text-transform: uppercase; }
         .footer-icon-small { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.2); object-fit: cover; }
         .game-checkbox { cursor: pointer; border: 1px solid rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 12px; transition: all 0.2s; font-size: 12px; font-weight: 600; background: rgba(255,255,255,0.02); }
         .game-checkbox.selected { background: var(--p); border-color: var(--p); color: white; box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
@@ -32,11 +32,11 @@
     <nav class="sticky top-0 z-50 glass border-b border-white/5 px-8 py-4 flex justify-between items-center text-white">
         <div class="flex items-center gap-4 cursor-pointer" onclick="showView('home')">
             <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg"><svg class="w-6 h-6" fill="white" viewBox="0 0 24 24"><path d="M7 4v16l13-8-13-8z"/></svg></div>
-            <h1 class="cyber-font text-2xl font-black tracking-tighter uppercase">StreamPay</h1>
+            <h1 class="cyber-font text-2xl font-black tracking-tighter uppercase text-white">StreamPay</h1>
         </div>
         <div class="flex items-center gap-6 text-[10px] font-bold uppercase">
             <button onclick="showView('register')" class="text-slate-400 hover:text-white transition">Become Streamer</button>
-            <button id="connectBtn" onclick="connectWallet()" class="glass px-6 py-2 rounded-full border border-white/10 hover:bg-white/5 transition">Connect Wallet</button>
+            <button id="connectBtn" onclick="connectWallet()" class="glass px-6 py-2 rounded-full border border-white/10 hover:bg-white/5 transition text-white">Connect Wallet</button>
         </div>
     </nav>
 
@@ -57,11 +57,11 @@
                 <h2 class="text-3xl font-black cyber-font mb-10 text-center uppercase tracking-tight">Streamer Registration</h2>
                 <form onsubmit="handleRegister(event)" class="space-y-10">
                     <div><label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-6 text-center text-left">Select Character</label><div id="avatarPicker" class="grid grid-cols-5 gap-4 justify-items-center"></div></div>
-                    <div class="grid grid-cols-2 gap-6"><div class="space-y-2 text-left"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Unique Username</label><input type="text" id="regUser" required placeholder="handle" class="w-full glass p-5 rounded-2xl outline-none text-sm"></div><div class="space-y-2 text-left"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 text-nowrap">Your Arc Wallet</label><input type="text" id="regWallet" readonly class="w-full glass p-5 rounded-2xl outline-none text-[10px] font-mono opacity-60" placeholder="Connect Wallet First"></div></div>
-                    <div class="space-y-4 text-left"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Select Games</label><div id="gameCheckboxes" class="flex flex-wrap gap-3"><div class="game-checkbox" onclick="toggleGame(this, 'Dota 2')">Dota 2</div><div class="game-checkbox" onclick="toggleGame(this, 'League of Legends')">League of Legends</div><div class="game-checkbox" onclick="toggleGame(this, 'CS2')">CS2</div><div class="game-checkbox" onclick="toggleGame(this, 'FIFA')">FIFA</div><div class="game-checkbox" onclick="toggleGame(this, 'Call of Duty')">Call of Duty</div></div></div>
-                    <div class="space-y-2 text-left"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Other Games</label><input type="text" id="regOtherGames" placeholder="e.g. Minecraft, Valorant" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white"></div>
-                    <div class="grid grid-cols-2 gap-6"><input type="url" id="regTwitch" placeholder="Twitch URL" class="glass p-5 rounded-2xl outline-none text-xs"><input type="url" id="regKick" placeholder="Kick URL" class="glass p-5 rounded-2xl outline-none text-xs"></div>
-                    <button id="regBtn" type="submit" class="w-full neon-btn py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.3em] text-white">Launch Profile on Arc Network</button>
+                    <div class="grid grid-cols-2 gap-6 text-left"><div class="space-y-2"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Unique Username</label><input type="text" id="regUser" required placeholder="handle" class="w-full glass p-5 rounded-2xl outline-none text-sm"></div><div class="space-y-2 text-left"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 text-nowrap">Your Arc Wallet</label><input type="text" id="regWallet" readonly class="w-full glass p-5 rounded-2xl outline-none text-[10px] font-mono opacity-60" placeholder="Connect Wallet First"></div></div>
+                    <div class="space-y-4 text-left text-white"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Select Games</label><div id="gameCheckboxes" class="flex flex-wrap gap-3"><div class="game-checkbox" onclick="toggleGame(this, 'Dota 2')">Dota 2</div><div class="game-checkbox" onclick="toggleGame(this, 'League of Legends')">League of Legends</div><div class="game-checkbox" onclick="toggleGame(this, 'CS2')">CS2</div><div class="game-checkbox" onclick="toggleGame(this, 'FIFA')">FIFA</div><div class="game-checkbox" onclick="toggleGame(this, 'Call of Duty')">Call of Duty</div></div></div>
+                    <div class="space-y-2 text-left text-white"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Other Games</label><input type="text" id="regOtherGames" placeholder="Other Games (Optional)" class="w-full glass p-5 rounded-2xl outline-none text-sm"></div>
+                    <div class="grid grid-cols-2 gap-6 text-xs text-white"><input type="url" id="regTwitch" placeholder="Twitch URL" class="glass p-5 rounded-2xl outline-none text-white"><input type="url" id="regKick" placeholder="Kick URL" class="glass p-5 rounded-2xl outline-none text-white"></div>
+                    <button id="regBtn" type="submit" class="w-full neon-btn py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.3em]">Launch Profile on Arc</button>
                 </form>
             </div>
         </section>
@@ -71,14 +71,13 @@
                 <div class="flex flex-col items-center space-y-10 text-center text-white">
                     <button onclick="showView('home')" class="self-start text-[10px] font-bold text-slate-500 uppercase hover:text-white transition tracking-widest">← Back</button>
                     <img id="targetImg" src="" class="w-56 h-56 rounded-[3.5rem] border-2 border-purple-500 shadow-2xl object-cover">
-                    <h2 id="targetName" class="text-5xl font-black cyber-font tracking-tighter uppercase">Creator</h2>
-                    <div id="targetGames" class="flex flex-wrap justify-center gap-3 mt-6"></div>
-                    <div class="flex gap-4 w-full text-white text-center"><a id="targetTwitch" href="#" target="_blank" class="flex-1 glass py-5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest hover:bg-purple-600 transition">Twitch</a><a id="targetKick" href="#" target="_blank" class="flex-1 glass py-5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest hover:bg-green-600 transition text-white text-center">Kick</a></div>
+                    <div><h2 id="targetName" class="text-5xl font-black cyber-font tracking-tighter uppercase text-white">Creator</h2><div id="targetGames" class="flex flex-wrap justify-center gap-3 mt-6"></div></div>
+                    <div class="flex gap-4 w-full text-white text-center"><a id="targetTwitch" href="#" target="_blank" class="flex-1 glass py-5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest hover:bg-purple-600 transition">Twitch</a><a id="targetKick" href="#" target="_blank" class="flex-1 glass py-5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest hover:bg-green-600 transition">Kick</a></div>
                 </div>
                 <div class="space-y-10 text-left">
-                    <div class="glass p-10 rounded-[3.5rem] border-white/5 shadow-2xl">
+                    <div class="glass p-10 rounded-[3.5rem] border-white/5 shadow-2xl text-white">
                         <div class="space-y-6">
-                            <input type="text" id="donorName" placeholder="Donor Name" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white">
+                            <input type="text" id="donorName" placeholder="Donor Name (Optional)" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white">
                             <div><label class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest px-1">Amount (Min 0.01 USDC)</label><input type="number" id="tipAmount" min="0.01" step="0.01" placeholder="1.00" class="w-full glass p-6 rounded-2xl outline-none text-3xl font-black text-white"></div>
                             <textarea id="tipMsg" rows="3" placeholder="Message..." class="w-full glass p-5 rounded-2xl outline-none text-sm resize-none text-white"></textarea>
                             <button onclick="executeTip()" class="w-full neon-btn py-6 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.3em] text-white">Donate Stream</button>
@@ -90,13 +89,13 @@
         </section>
     </main>
 
-    <footer class="mt-40 border-t border-white/5 py-16 px-10 glass text-white text-left">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
+    <footer class="mt-40 border-t border-white/5 py-16 px-10 glass text-white text-left text-white">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 text-white">
             <div class="flex items-center gap-10">
-                <div class="flex items-center gap-3"><img id="fAvatar" class="footer-icon-small"><p class="text-xs">Project by <b>amirrezaeian</b></p></div>
-                <div class="flex items-center gap-3"><img id="fArc" class="footer-icon-small"><p class="text-[10px] uppercase font-bold text-slate-500">Built on Arc Network™</p></div>
+                <div class="flex items-center gap-3"><img id="footerAvatar" src="data:image/jpeg;base64,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" class="footer-icon-small" id="footerAvatar"> <p class="text-xs">Project by <b>amirrezaeian</b></p></div>
+                <div class="flex items-center gap-3"><img id="footerArc" src="data:image/jpeg;base64,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" class="footer-icon-small"><p class="text-[10px] uppercase font-bold text-slate-500 tracking-widest text-white">Built on Arc</p></div>
             </div>
-            <div class="flex gap-12 text-[10px] font-bold uppercase text-slate-500"><a href="https://x.com/amirrezaeian75" target="_blank" class="hover:text-purple-400 transition">Twitter (X)</a><a href="https://github.com/amirrezaeian1375/stream-donate-arc" target="_blank" class="hover:text-purple-400 transition text-white">GitHub</a></div>
+            <div class="flex gap-12 text-[10px] font-bold uppercase text-slate-500"><a href="https://x.com/amirrezaeian75" target="_blank" class="hover:text-purple-400 transition text-white">Twitter (X)</a><a href="https://github.com/amirrezaeian1375/stream-donate-arc" target="_blank" class="hover:text-purple-400 transition text-white">GitHub</a></div>
         </div>
         <div class="max-w-7xl mx-auto mt-16 text-center text-[9px] text-slate-700 leading-relaxed uppercase tracking-widest italic">Arc is a trademark of Circle Internet Group, Inc. StreamPay is an independent project.</div>
     </footer>
@@ -109,8 +108,7 @@
         let selectedAvatar = "", selectedGames = [], userWallet = "";
         
         let streamers = [
-            { user: "amirrezaeian", games: ["Dota 2", "FIFA"], img: "https://api.dicebear.com/7.x/adventurer/svg?seed=Aria", wallet: "0x562639eAA3e16199F29206f3f57aD3daD5903ac4", twitch: "#", kick: "#" },
-            { user: "shadow_ninja", games: ["CS2"], img: "https://api.dicebear.com/7.x/adventurer/svg?seed=Milo", wallet: "0x8991f40CC1926a83C38290BA74A3beacd10Cf5fA", twitch: "#", kick: "#" }
+            { user: "amirrezaeian", games: ["Dota 2", "FIFA"], img: "https://api.dicebear.com/7.x/adventurer/svg?seed=Aria", wallet: "0x562639eAA3e16199F29206f3f57aD3daD5903ac4", twitch: "#", kick: "#" }
         ];
 
         async function connectWallet() {
@@ -130,17 +128,8 @@
             } else { alert("Install MetaMask!"); return false; }
         }
 
-        function showView(v) { 
-            document.querySelectorAll('.view').forEach(e => e.classList.remove('active')); 
-            document.getElementById(v + 'View').classList.add('active'); 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            if(v === 'home') window.history.replaceState({}, '', window.location.pathname);
-        }
-
-        function toggleGame(el, g) {
-            if (selectedGames.includes(g)) { selectedGames = selectedGames.filter(i => i !== g); el.classList.remove('selected'); }
-            else { selectedGames.push(g); el.classList.add('selected'); }
-        }
+        function showView(v) { document.querySelectorAll('.view').forEach(e => e.classList.remove('active')); document.getElementById(v + 'View').classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); if(v === 'home') window.history.replaceState({}, '', window.location.pathname); }
+        function toggleGame(el, g) { if (selectedGames.includes(g)) { selectedGames = selectedGames.filter(i => i !== g); el.classList.remove('selected'); } else { selectedGames.push(g); el.classList.add('selected'); } }
         
         function renderStreamers() {
             const s = document.getElementById('searchInput').value.toLowerCase(), f = document.getElementById('gameFilter').value, l = document.getElementById('streamerList');
@@ -149,7 +138,7 @@
             const unique = combined.filter((v,i,a)=>a.findIndex(t=>(t.user.toLowerCase()===v.user.toLowerCase()))===i);
             l.innerHTML = unique.filter(st => st.user.toLowerCase().includes(s) && (f === 'All' || st.games.includes(f))).map(st => `
                 <div class="glass p-10 rounded-[3rem] text-center cursor-pointer group flex flex-col items-center hover:-translate-y-3 transition-all duration-500" onclick="openDonate('${st.user}')">
-                    <img src="${st.img}" class="profile-img-card mb-8 group-hover:scale-110 transition duration-700 border-2 border-purple-500">
+                    <img src="${st.img}" class="profile-img-card mb-8 group-hover:scale-110 transition duration-700 border-2 border-purple-500 shadow-lg">
                     <h3 class="cyber-font font-black text-2xl mb-4 uppercase text-white tracking-tighter">${st.user}</h3>
                     <div class="flex flex-wrap justify-center gap-2 mb-10">${st.games.map(g => `<span class="game-tag">${g}</span>`).join('')}</div>
                     <button class="w-full py-4 rounded-2xl border border-white/10 text-[9px] font-black uppercase tracking-[0.2em] group-hover:bg-purple-600 transition-all text-white">Donate Stream</button>
@@ -158,7 +147,7 @@
         }
 
         async function handleRegister(e) {
-            e.preventDefault();
+            e.preventDefault(); 
             if(!userWallet) { alert("Please connect your wallet first!"); await connectWallet(); return; }
             const user = document.getElementById('regUser').value;
             const btn = document.getElementById('regBtn');
@@ -192,8 +181,7 @@
             document.getElementById('targetGames').innerHTML = c.games.map(g => `<span class="game-tag text-xs">${g}</span>`).join('');
             const url = window.location.origin + window.location.pathname + "?streamer=" + c.user;
             document.getElementById('qrcode').innerHTML = ""; new QRCode(document.getElementById("qrcode"), { text: url, width: 140, height: 140 });
-            showView('donate');
-            window.history.replaceState({}, '', url);
+            showView('donate'); window.history.replaceState({}, '', url);
         }
 
         async function executeTip() {
@@ -205,23 +193,15 @@
                 const combined = [...JSON.parse(localStorage.getItem('streampay_v3_data') || "[]"), ...streamers];
                 const st = combined.find(s => s.user === sName);
                 const tx = await signer.sendTransaction({ to: st.wallet, value: ethers.utils.parseEther(amt.toString()) });
-                alert("Transaction pending..."); await tx.wait();
-                alert("Thank you! You have successfully donated to " + sName + " ☕️");
+                alert("Transaction pending..."); await tx.wait(); alert("Thank you! You have successfully donated to " + sName + " ☕️");
             } catch (e) { alert("Donation Failed!"); }
         }
 
         function copyPayLink() { navigator.clipboard.writeText(window.location.href); alert("Link Copied!"); }
         function setupAvatarPicker() { document.getElementById('avatarPicker').innerHTML = avatarSeeds.map(s => { const u = `https://api.dicebear.com/7.x/adventurer/svg?seed=${s}`; return `<img src="${u}" class="avatar-box" onclick="selectAvatar(this, '${u}')">`; }).join(''); }
         function selectAvatar(el, u) { document.querySelectorAll('.avatar-box').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); selectedAvatar = u; }
-        window.onload = () => { 
-            setupAvatarPicker(); 
-            // Final Base64 injection for reliability
-            const fAv = document.getElementById('footerAvatar'); const fAr = document.getElementById('footerArc');
-            fAv.src = "data:image/jpeg;base64,REPLACE_AVATAR_B64";
-            fAr.src = "data:image/jpeg;base64,REPLACE_ARC_B64";
-            renderStreamers(); 
-            const p = new URLSearchParams(window.location.search); if(p.has('streamer')) openDonate(p.get('streamer')); 
-        };
+        window.onload = () => { setupAvatarPicker(); renderStreamers(); const p = new URLSearchParams(window.location.search); if(p.has('streamer')) openDonate(p.get('streamer')); };
     </script>
 </body>
 </html>
+,kind:text,lines:221,size:23348},name:write_file}
