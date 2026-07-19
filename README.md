@@ -1,23 +1,24 @@
 # StreamPay 🎮💰
-A stablecoin-native streaming donation platform built on **Arc Network™**.
+A professional gaming donation platform built on **Arc Network™**.
 
-StreamPay provides a seamless experience for gamers and fans to interact using native USDC. With sub-second finality and near-zero fees, even the smallest tips (Nanopayments) are now possible.
+StreamPay enables seamless interactions between streamers and fans using native USDC. With sub-second finality and predictable transaction costs, it’s the ultimate tool for the gaming community.
 
 ## Key Features
 - **Nanopayments:** Support creators with as little as 0.01 USDC.
-- **Direct Settlement:** Donations go straight from viewer to streamer (P2P).
-- **On-chain Registry:** Secure your unique streamer identity on the Arc Network.
-- **Multi-Game Selection:** Flexible profile customization for variety streamers.
-- **Dynamic UX:** Built-in search, filtering, and instant QR code generation.
+- **On-chain Identity:** Secure your unique streamer handle on the blockchain.
+- **Real-time Analytics:** Track recent donations directly from on-chain events.
+- **P2P Settlement:** Funds are transferred directly to the streamer's wallet.
+- **Gaming First UX:** Optimized interface with avatar selection and multi-game support.
 
-## Technical Details
-- **Network:** Arc Testnet
-- **Gas Token:** USDC
-- **Smart Contract Address:** `0x03D8d075aF53fE525F4d270bc1a70734F7F8d541`
+## Technical Stack
+- **Network:** Arc Testnet (Chain ID: 5042002)
+- **Language:** Solidity (^0.8.0)
+- **Frontend:** HTML5, Tailwind CSS, Ethers.js
+- **Smart Contract:** `0x2a045a73f9D41531325028a4a9D79db201393EB6`
 
 ## Developer
-- **Made by:** amirrezaeian
-- **Twitter:** [https://x.com/amirrezaeian75](https://x.com/amirrezaeian75)
+- **Creator:** amirrezaeian
+- **Twitter (X):** [https://x.com/amirrezaeian75](https://x.com/amirrezaeian75)
 
 ---
-*Arc is a trademark of Circle Internet Group, Inc. and/or its affiliates. StreamPay is an independent project built on Arc.*
+*Arc is a trademark of Circle Internet Group, Inc. and/or its affiliates. StreamPay is an independent project.*
