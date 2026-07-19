@@ -19,7 +19,7 @@
         .view.active { display: block; animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .avatar-box { width: 65px; height: 65px; cursor: pointer; border: 2px solid transparent; border-radius: 12px; transition: 0.2s; background: rgba(255,255,255,0.05); }
-        .avatar-box.selected { border-color: var(--s); box-shadow: 0 0 15px var(--s); }
+        .avatar-box.selected { border-color: var(--s); box-shadow: 0 0 15px var(--s); background: rgba(6, 182, 212, 0.1); }
         .game-tag { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc; font-size: 9px; font-weight: 800; padding: 2px 10px; border-radius: 6px; text-transform: uppercase; }
         .footer-icon-small { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.2); object-fit: cover; }
         .game-checkbox { cursor: pointer; border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 10px; transition: all 0.2s; font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.02); }
@@ -27,12 +27,12 @@
         .profile-img-card { width: 110px; height: 110px; object-fit: cover; border-radius: 28px; border: 2px solid var(--p); }
     </style>
 </head>
-<body class="pb-10 text-left text-white">
+<body class="pb-10 text-left">
 
     <nav class="sticky top-0 z-50 glass border-b border-white/5 px-8 py-4 flex justify-between items-center text-white">
         <div class="flex items-center gap-4 cursor-pointer" onclick="showView('home')">
             <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg"><svg class="w-6 h-6" fill="white" viewBox="0 0 24 24"><path d="M7 4v16l13-8-13-8z"/></svg></div>
-            <h1 class="cyber-font text-2xl font-black tracking-tighter uppercase text-white">StreamPay</h1>
+            <h1 class="cyber-font text-2xl font-black tracking-tighter uppercase">StreamPay</h1>
         </div>
         <div class="flex items-center gap-6 text-[10px] font-bold uppercase">
             <button onclick="showView('register')" class="text-slate-400 hover:text-white transition">Become Streamer</button>
@@ -41,9 +41,11 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-6 mt-16 text-left">
-        <section id="homeView" class="view active">
+        <section id="homeView" class="view active text-white">
             <div class="flex flex-col lg:flex-row justify-between items-end mb-16 gap-8">
-                <div class="text-left"><h2 class="text-6xl font-black cyber-font mb-2 tracking-tighter uppercase">Streamers</h2></div>
+                <div>
+                    <h2 class="text-6xl font-black cyber-font mb-2 tracking-tighter uppercase">Streamers</h2>
+                </div>
                 <div class="flex gap-4 w-full lg:w-auto">
                     <div class="relative flex-1 lg:w-80"><input type="text" id="searchInput" oninput="renderStreamers()" placeholder="Search username..." class="w-full glass p-5 rounded-2xl outline-none text-sm text-white focus:border-cyan-500 transition"></div>
                     <select id="gameFilter" onchange="renderStreamers()" class="glass p-5 rounded-2xl text-[10px] font-bold uppercase outline-none text-white cursor-pointer"><option value="All">All Games</option><option value="Dota 2">Dota 2</option><option value="League of Legends">League of Legends</option><option value="CS2">CS2</option><option value="FIFA">FIFA</option><option value="Call of Duty">Call of Duty</option></select>
@@ -52,16 +54,16 @@
             <div id="streamerList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10"></div>
         </section>
 
-        <section id="registerView" class="view max-w-2xl mx-auto">
+        <section id="registerView" class="view max-w-2xl mx-auto text-white">
             <div class="glass p-12 rounded-[3.5rem] shadow-2xl relative overflow-hidden">
-                <h2 class="text-3xl font-black cyber-font mb-10 text-center uppercase tracking-tight text-white text-left">Streamer Registration</h2>
+                <h2 class="text-3xl font-black cyber-font mb-10 text-center uppercase tracking-tight">Streamer Registration</h2>
                 <form onsubmit="handleRegister(event)" class="space-y-10">
                     <div><label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] block mb-6 text-center text-left">Select Character</label><div id="avatarPicker" class="grid grid-cols-5 gap-4 justify-items-center"></div></div>
-                    <div class="grid grid-cols-2 gap-6 text-left"><div class="space-y-2"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 text-white">Unique Username</label><input type="text" id="regUser" required placeholder="handle" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white"></div><div class="space-y-2"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 text-nowrap text-white">Your Arc Wallet</label><input type="text" id="regWallet" readonly class="w-full glass p-5 rounded-2xl outline-none text-[10px] font-mono opacity-60 text-white" placeholder="Connect Wallet First"></div></div>
-                    <div class="space-y-4 text-left text-white"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 text-white">Select Games</label><div id="gameCheckboxes" class="flex flex-wrap gap-3 text-white"><div class="game-checkbox" onclick="toggleGame(this, 'Dota 2')">Dota 2</div><div class="game-checkbox" onclick="toggleGame(this, 'League of Legends')">League of Legends</div><div class="game-checkbox" onclick="toggleGame(this, 'CS2')">CS2</div><div class="game-checkbox" onclick="toggleGame(this, 'FIFA')">FIFA</div><div class="game-checkbox" onclick="toggleGame(this, 'Call of Duty')">Call of Duty</div></div></div>
-                    <div class="space-y-2 text-left text-white"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 text-white text-left">Other Games</label><input type="text" id="regOtherGames" placeholder="e.g. Minecraft, Valorant" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white"></div>
+                    <div class="grid grid-cols-2 gap-6"><div class="space-y-2 text-left"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Unique Username</label><input type="text" id="regUser" required placeholder="handle" class="w-full glass p-5 rounded-2xl outline-none text-sm"></div><div class="space-y-2 text-left"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 text-nowrap">Your Arc Wallet</label><input type="text" id="regWallet" readonly class="w-full glass p-5 rounded-2xl outline-none text-[10px] font-mono opacity-60" placeholder="Connect Wallet First"></div></div>
+                    <div class="space-y-4 text-left text-white"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Select Games</label><div id="gameCheckboxes" class="flex flex-wrap gap-3"><div class="game-checkbox" onclick="toggleGame(this, 'Dota 2')">Dota 2</div><div class="game-checkbox" onclick="toggleGame(this, 'League of Legends')">League of Legends</div><div class="game-checkbox" onclick="toggleGame(this, 'CS2')">CS2</div><div class="game-checkbox" onclick="toggleGame(this, 'FIFA')">FIFA</div><div class="game-checkbox" onclick="toggleGame(this, 'Call of Duty')">Call of Duty</div></div></div>
+                    <div class="space-y-2 text-left text-white"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Other Games</label><input type="text" id="regOtherGames" placeholder="e.g. Minecraft, Valorant" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white"></div>
                     <div class="grid grid-cols-2 gap-6 text-xs text-white"><input type="url" id="regTwitch" placeholder="Twitch URL" class="glass p-5 rounded-2xl outline-none text-white"><input type="url" id="regKick" placeholder="Kick URL" class="glass p-5 rounded-2xl outline-none text-white"></div>
-                    <button id="regBtn" type="submit" class="w-full neon-btn py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.3em] text-white">Launch Profile on Arc</button>
+                    <button id="regBtn" type="submit" class="w-full neon-btn py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.3em]">Launch Profile on Arc Network</button>
                 </form>
             </div>
         </section>
@@ -70,17 +72,20 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 glass p-12 rounded-[4.5rem] text-white">
                 <div class="flex flex-col items-center space-y-10 text-center text-white">
                     <button onclick="showView('home')" class="self-start text-[10px] font-bold text-slate-500 uppercase hover:text-white transition tracking-widest">← Back</button>
-                    <img id="targetImg" src="" class="w-56 h-56 rounded-[3.5rem] border-2 border-purple-500 shadow-2xl object-cover shadow-purple-900/40 mx-auto">
-                    <div class="text-center"><h2 id="targetName" class="text-5xl font-black cyber-font tracking-tighter uppercase text-white">Creator</h2><div id="targetGames" class="flex flex-wrap justify-center gap-3 mt-6"></div></div>
-                    <div class="flex gap-4 w-full text-white text-center"><a id="targetTwitch" href="#" target="_blank" class="flex-1 glass py-5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest hover:bg-purple-600 transition">Twitch</a><a id="targetKick" href="#" target="_blank" class="flex-1 glass py-5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest hover:bg-green-600 transition text-white text-center">Kick</a></div>
+                    <img id="targetImg" src="" class="w-56 h-56 rounded-[3.5rem] border-2 border-purple-500 shadow-2xl object-cover shadow-purple-900/40">
+                    <div class="text-center">
+                        <h2 id="targetName" class="text-5xl font-black cyber-font tracking-tighter uppercase">Creator</h2>
+                        <div id="targetGames" class="flex flex-wrap justify-center gap-3 mt-6"></div>
+                    </div>
+                    <div class="flex gap-4 w-full text-white text-center"><a id="targetTwitch" href="#" target="_blank" class="flex-1 glass py-5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest hover:bg-purple-600 transition">Twitch</a><a id="targetKick" href="#" target="_blank" class="flex-1 glass py-5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest hover:bg-green-600 transition">Kick</a></div>
                 </div>
                 <div class="space-y-10 text-left">
-                    <div class="glass p-10 rounded-[3.5rem] border-white/5 shadow-2xl text-white">
-                        <div class="space-y-6 text-left">
+                    <div class="glass p-10 rounded-[3.5rem] border-white/5 shadow-2xl">
+                        <div class="space-y-6">
                             <input type="text" id="donorName" placeholder="Donor Name (Optional)" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white">
-                            <div><label class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest px-1">Amount (Min 0.01 ARC)</label><input type="number" id="tipAmount" min="0.01" step="0.01" placeholder="1.00" class="w-full glass p-6 rounded-2xl outline-none text-3xl font-black text-white"></div>
-                            <textarea id="tipMsg" rows="3" placeholder="Message..." class="w-full glass p-5 rounded-2xl outline-none text-sm resize-none text-white"></textarea>
-                            <button id="tipBtn" onclick="executeTip()" class="w-full neon-btn py-6 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.3em] text-white">Donate Stream</button>
+                            <div><label class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest px-1">Amount (Min 0.01 USDC)</label><input type="number" id="tipAmount" min="0.01" step="0.01" placeholder="1.00" class="w-full glass p-6 rounded-2xl outline-none text-3xl font-black text-white"></div>
+                            <textarea id="tipMsg" rows="3" placeholder="Write a message..." class="w-full glass p-5 rounded-2xl outline-none text-sm resize-none text-white"></textarea>
+                            <button onclick="executeTip()" class="w-full neon-btn py-6 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.3em] text-white">Donate Stream</button>
                         </div>
                     </div>
                     <div class="flex flex-col items-center">
@@ -92,14 +97,20 @@
         </section>
     </main>
 
-    <footer class="mt-40 border-t border-white/5 py-16 px-10 glass text-white text-left text-white">
+    <footer class="mt-40 border-t border-white/5 py-16 px-10 glass text-white text-left">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 text-white">
             <div class="flex items-center gap-10">
-                <div class="flex items-center gap-3"><img id="footerAvatar" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/wAARCAKAAoADASIAAhEBAxEB/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAECAwX/xAAbEAEBAQEBAQEBAAAAAAAAAAABABECEUEhMf/EABYBAQEBAAAAAAAAAAAAAAAAAAABAv/EABYRAQEBAAAAAAAAAAAAAAAAAAABAv/aAAwDAQACEQMRAD8A5w4IAP1FLgZyeKPr9aMdh24rMoQZyPb/AD1o680uRj0/lQOndutUAgxjOeppTweeO1Jn1owBzUgLnj2o7UmCcD14zSlsimAex/OkJPGKUdPl/Kg9OOO4pgIB1I7UcDk9aORkDrQew/D/JoADjr2oIPQGjHHWjB+tIAxg56f/Xox1/rQT269aPakAuOenNIemSBg0YweOKDjg5p3ATPGOlL3+lHU5GOaOvQ8GgAJOOev0pOc8d+lOB654/z+NM68elIBxPrwKTB6HrRyW4pOn0oADzzQMjjH+TS4Oct+FJ0x25/nQAD0PFHbnj6e9BPIx/Wgjpk/wAv6U7AIAM+pFL17UnbijPI7iiwB7/5FNx2z+Bp3f8ApSAH149B3pAHANIc446Uvtmqgvbdr99NJ/fJAJ8DH3S5TH5jP0IqgLgyCfz/ADpoxnHalP8As0AHp/8AqpAGO1OHT1pmSOB0pRjikAvtSZ5o/wAik69Bx/SgBST7Uo+YdeKbjH40ZB4HagA4IyKUcng03kdecc0DgAGgBxPqKFxwP5U0nt2oY5Hb/PFMBc5FQzSrDGZGyEXlj6L3PHYdT6DntU24ZwR/OmgcDHP9aYDlAPHU+v8AhS/yxmuU0rUltNYu/C9xJua3AltCf4oWUOI855MQOB1yoPQLz1QPHGc+1IBRnHpzxQOnselIPU8UvzE4zgUAOHpQf50mTkflQMZyPxoAd+GKaM9QKOo4OT0oIyRjkUgFAPYUpHANBzgH0/GkAH5UwF5J29Pamn17UpA7UoJ/GkAAcDuBQMj/AOvSduOnel9xTAXnjPSkpR0xnrS5GM9KQAARxjpTegx19aME++KXnH60AL0OaXjHBBFJkjB7+1J0/wA+tAATkClIwPrQPegDB570wE7fWg/59KUcj1zSd8Hk9aYDjjFGc9TSHtigdTxx/n3pAKAeTijselBwRxRj9KQBk9jSED8qXk+1AxQAZJH60AHvR+NHsKAP/9DjT1x39qUZz0/KjnvRjGPSsygxkbcUnfFLQcfl2oABxRyD1xSdB7Up4OR65oAOntSDO3kYOPWijAK5pgHfnpSHsPWl7ZpOcY/XrSAU59KRcADH+eKdjmjGRTAb9OfSnY6n8aOe+aQ9c0gEwB/Wjkn3HrTsAf5/Om9s/nVAHfB7UbvTgUEev40pzikAc8jHpTcjufal4OKMmhgLjFJn1470mDnjrSgE8HpSATkkDNOzxnv70mQDyeaaTzTsAuCG3Hj/AD/nvTc5wMfUUuR36Cj8KAFPP0x3pnXr19frTsEnA5OeB3NcjqHjCygv4tH0tf7Q1CRwn连接Wallet" class="footer-icon-small"><p class="text-xs">Project by <b>amirrezaeian</b></p></div>
+                <div class="flex items-center gap-3">
+                    <img id="footerAvatar" src="https://i.postimg.cc/vT96JDNC/avatar.jpg" class="footer-icon-small">
+                    <p class="text-xs text-slate-400">Project by <b>amirrezaeian</b></p>
+                </div>
                 <div class="w-px h-8 bg-white/10"></div>
-                <div class="flex items-center gap-3"><img id="footerArc" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCACAAIADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9sAQwEEBQUHBwcMBwcMHRQQFB0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0d/90ABAAo/9oADAMBAAIRAxEAPwD5/oooorUAooooAKKKKACpbe2mupfLt4mlfG7ai7mwOuAKiruvhH/yP9v/ ANcpP/QDWVao6dOU10RpSgpzUX1OHeN0VXZGVX+6SuNw9vWmV6X8Zf8AkYNP/wCvY/8AoZrzSppVHUgpvqOdBwqOC6BRRRWpkFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFdt8JP+R/t/+uUn/oBriSjKiuUba3AbHGfau3+En/I/2/8...Built on Arc</p></div>
+                <div class="flex items-center gap-3">
+                    <img id="footerArc" src="https://i.postimg.cc/vHFnWL1s/arc-logo.jpg" class="footer-icon-small">
+                    <p class="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Built on Arc Network™</p>
+                </div>
             </div>
-            <div class="flex gap-12 text-[10px] font-bold uppercase text-slate-500"><a href="https://x.com/amirrezaeian75" target="_blank" class="hover:text-purple-400 transition">Twitter (X)</a><a href="https://github.com/amirrezaeian1375/stream-donate-arc" target="_blank" class="hover:text-purple-400 transition">GitHub</a></div>
+            <div class="flex gap-12 text-[10px] font-bold uppercase text-slate-500"><a href="https://x.com/amirrezaeian75" target="_blank" class="hover:text-purple-400 transition text-white">Twitter (X)</a><a href="https://github.com/amirrezaeian1375/stream-donate-arc" target="_blank" class="hover:text-purple-400 transition text-white">GitHub</a></div>
         </div>
         <div class="max-w-7xl mx-auto mt-16 text-center text-[9px] text-slate-700 leading-relaxed uppercase tracking-widest italic">Arc is a trademark of Circle Internet Group, Inc. StreamPay is an independent project.</div>
     </footer>
@@ -125,9 +136,11 @@
                 alert("Please install MetaMask!");
                 return false;
             }
+
             try {
                 const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 userWallet = accs[0];
+
                 const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
                 
                 if (currentChainId.toLowerCase() !== arcChainId.toLowerCase()) {
@@ -145,12 +158,16 @@
                                         chainId: arcChainId,
                                         chainName: 'Arc Testnet',
                                         rpcUrls: ['https://rpc.testnet.arc.network'],
-                                        nativeCurrency: { name: 'Arc', symbol: 'ARC', decimals: 18 },
+                                        nativeCurrency: {
+                                            name: 'Arc',
+                                            symbol: 'ARC', 
+                                            decimals: 18
+                                        },
                                         blockExplorerUrls: ['https://explorer.testnet.arc.network']
                                     }],
                                 });
                             } catch (addError) {
-                                alert("Failed to add Arc Testnet: " + addError.message);
+                                alert("Failed to add Arc Testnet to MetaMask: " + addError.message);
                                 return false;
                             }
                         } else {
@@ -159,10 +176,15 @@
                         }
                     }
                 }
+
                 document.getElementById('connectBtn').innerText = userWallet.substring(0,6) + "...";
                 if(document.getElementById('regWallet')) document.getElementById('regWallet').value = userWallet;
                 return true;
-            } catch (e) { alert("Wallet error: " + e.message); return false; }
+
+            } catch (e) {
+                alert("Wallet connection error: " + e.message);
+                return false;
+            }
         }
 
         function showView(v) { 
@@ -186,20 +208,18 @@
                 for(let i=0; i<count; i++) {
                     const user = await contract.streamerList(i);
                     const data = await contract.getStreamer(user);
-                    if(data.isRegistered) {
-                        list.push({
-                            user: data.username,
-                            games: data.games,
-                            img: data.avatar,
-                            wallet: data.wallet,
-                            twitch: "#",
-                            kick: "#"
-                        });
-                    }
+                    list.push({
+                        user: data.username,
+                        games: data.games,
+                        img: data.avatar,
+                        wallet: data.wallet,
+                        twitch: "#",
+                        kick: "#"
+                    });
                 }
-                return list.length > 0 ? list : fallbackStreamers;
+                return list;
             } catch(e) {
-                console.error("Failed to fetch on-chain data:", e);
+                console.error("Failed to fetch on-chain data, using fallback:", e);
                 return fallbackStreamers;
             }
         }
@@ -208,9 +228,9 @@
             const s = document.getElementById('searchInput').value.toLowerCase(), f = document.getElementById('gameFilter').value, l = document.getElementById('streamerList');
             l.innerHTML = "<div class='text-center text-slate-400 col-span-full py-10'>Syncing with Arc Network...</div>";
             
-            const unique = await fetchOnChainStreamers();
-            const filtered = unique.filter(st => st.user.toLowerCase().includes(s) && (f === 'All' || st.games.includes(f)));
+            const onChainData = await fetchOnChainStreamers();
             
+            const filtered = onChainData.filter(st => st.user.toLowerCase().includes(s) && (f === 'All' || st.games.includes(f)));
             if(filtered.length === 0) {
                 l.innerHTML = "<div class='text-center text-slate-500 col-span-full py-10'>No Streamers Found</div>";
                 return;
@@ -227,15 +247,12 @@
         }
 
         async function handleRegister(e) {
-            e.preventDefault(); 
+            e.preventDefault();
             if(!userWallet) { const connected = await connectWallet(); if(!connected) return; }
             const user = document.getElementById('regUser').value;
             const btn = document.getElementById('regBtn');
             
-            const activeList = await fetchOnChainStreamers();
-            if (activeList.find(s => s.user.toLowerCase() === user.toLowerCase())) return alert("Registration rejected: Username already registered.");
             if (!selectedAvatar) return alert("Select a character!");
-            
             let finalGames = [...selectedGames]; const other = document.getElementById('regOtherGames').value;
             if (other) finalGames.push(other); if (finalGames.length === 0) return alert("Select at least one game!");
 
@@ -246,19 +263,22 @@
                 const contract = new ethers.Contract(contractAddress, abi, signer);
                 
                 const tx = await contract.register(user, finalGames, selectedAvatar);
-                alert("Confirming on Arc Testnet... Please wait.");
+                alert("Transaction Broadcasted! Confirming on Arc Testnet..."); 
                 await tx.wait();
-
+                
+                alert("Success! Profile permanently active on Arc Network.");
                 await renderStreamers(); 
-                showView('home'); 
-                alert("Success! Profile Active on Arc Network.");
-            } catch (e) { alert("Registration failed! Check your Arc wallet transaction."); }
-            finally { btn.innerText = "Launch Profile on Arc"; btn.disabled = false; }
+                showView('home');
+            } catch (e) { 
+                alert("Registration failed! Unique username or wallet might be already taken."); 
+            } finally { 
+                btn.innerText = "Launch Profile on Arc Network"; btn.disabled = false; 
+            }
         }
 
         async function openDonate(u) {
-            const activeList = await fetchOnChainStreamers();
-            const c = activeList.find(st => st.user.toLowerCase() === u.toLowerCase());
+            const onChainData = await fetchOnChainStreamers();
+            const c = onChainData.find(st => st.user.toLowerCase() === u.toLowerCase());
             if(!c) return;
             
             document.getElementById('targetName').innerText = c.user; document.getElementById('targetImg').src = c.img;
@@ -276,25 +296,39 @@
         async function executeTip() {
             if(!userWallet) { const connected = await connectWallet(); if(!connected) return; }
             const amt = document.getElementById('tipAmount').value, sName = document.getElementById('targetName').innerText;
-            if(amt < 0.01) return alert("Min donation is 0.01 ARC");
+            if(amt < 0.01) return alert("Min donation is 0.01 USDC");
+            
             try {
                 const provider = new ethers.providers.Web3Provider(window.ethereum); 
                 const signer = provider.getSigner(); 
-                const activeList = await fetchOnChainStreamers();
-                const st = activeList.find(s => s.user === sName);
+                const onChainData = await fetchOnChainStreamers();
+                const st = onChainData.find(s => s.user === sName);
                 
-                const tx = await signer.sendTransaction({ to: st.wallet, value: ethers.utils.parseEther(amt.toString()) });
-                alert("Transaction pending..."); 
+                const parsedAmount = ethers.utils.parseUnits(amt.toString(), 6);
+                
+                const tx = await signer.sendTransaction({ 
+                    to: st.wallet, 
+                    value: parsedAmount 
+                });
+                
+                alert("Donation pending on Arc Network..."); 
                 await tx.wait();
-                alert("Thank you! You have successfully donated to " + sName);
-            } catch (e) { alert("Donation Failed!"); }
+                alert("Thank you! You have successfully donated to " + sName + " ☕️");
+            } catch (e) { 
+                alert("Donation Failed! Check your Arc Testnet USDC balance."); 
+            }
         }
 
-        function copyPayLink() { navigator.clipboard.writeText(window.location.href); alert("Link Copied!"); }
+        function copyPayLink() { navigator.clipboard.writeText(window.location.origin + window.location.pathname + "?streamer=" + document.getElementById('targetName').innerText); alert("Donation Link Copied!"); }
         function setupAvatarPicker() { document.getElementById('avatarPicker').innerHTML = avatarSeeds.map(s => { const u = `https://api.dicebear.com/7.x/adventurer/svg?seed=${s}`; return `<img src="${u}" class="avatar-box" onclick="selectAvatar(this, '${u}')">`; }).join(''); }
         function selectAvatar(el, u) { document.querySelectorAll('.avatar-box').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); selectedAvatar = u; }
         
-        window.onload = () => { setupAvatarPicker(); renderStreamers(); const p = new URLSearchParams(window.location.search); if(p.has('streamer')) openDonate(p.get('streamer')); };
+        window.onload = () => { 
+            setupAvatarPicker(); 
+            renderStreamers(); 
+            const p = new URLSearchParams(window.location.search); 
+            if(p.has('streamer')) openDonate(p.get('streamer')); 
+        };
     </script>
 </body>
 </html>
