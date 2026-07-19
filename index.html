@@ -101,12 +101,12 @@
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 text-white">
             <div class="flex items-center gap-10">
                 <div class="flex items-center gap-3">
-                    <img id="footerAvatar" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Aria" class="footer-icon-small">
+                    <img id="footerAvatar" src="avatar.jpg" class="footer-icon-small">
                     <p class="text-xs text-slate-400">Project by <b>amirrezaeian</b></p>
                 </div>
                 <div class="w-px h-8 bg-white/10"></div>
                 <div class="flex items-center gap-3">
-                    <div class="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center font-bold text-[8px]">ARC</div>
+                    <img id="footerArc" src="arc-logo.jpg" class="footer-icon-small">
                     <p class="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Built on Arc Network™</p>
                 </div>
             </div>
@@ -117,7 +117,7 @@
 
     <script>
         const contractAddress = "0x03D8d075aF53fE525F4d270bc1a70734F7F8d541";
-        const arcChainId = "0x4cef52"; // 5042002 in hex
+        const arcChainId = "0x4cef52"; 
         const abi = [
             "function register(string memory _user, string[] memory _games, string memory _avatar) public",
             "function getStreamer(string memory _user) public view returns (tuple(string username, string[] games, string avatar, address wallet, bool isRegistered))",
@@ -127,7 +127,6 @@
         const avatarSeeds = ["Aria", "Milo", "Kiki", "Leo", "Luna", "Jasper", "Nova", "Felix", "Nala", "Buster", "Zoe", "Finn", "Maya", "Oscar", "Cleo"];
         let selectedAvatar = "", selectedGames = [], userWallet = "";
         
-        // بک‌آپ برای حالت لود اولیه یا تست
         let fallbackStreamers = [
             { user: "amirrezaeian", games: ["Dota 2", "FIFA"], img: "https://api.dicebear.com/7.x/adventurer/svg?seed=Aria", wallet: "0x562639eAA3e16199F29206f3f57aD3daD5903ac4", twitch: "#", kick: "#" }
         ];
@@ -161,7 +160,6 @@
             else { selectedGames.push(g); el.classList.add('selected'); }
         }
 
-        // خواندن داده‌های زنده مستقیم از شبکه ارک
         async function fetchOnChainStreamers() {
             try {
                 const provider = new ethers.providers.JsonRpcProvider("https://rpc.testnet.arc.network");
@@ -267,7 +265,6 @@
                 const onChainData = await fetchOnChainStreamers();
                 const st = onChainData.find(s => s.user === sName);
                 
-                // اصلاح اعشار روی بلاکچین ارک بومی (6 رقم برای USDC)
                 const parsedAmount = ethers.utils.parseUnits(amt.toString(), 6);
                 
                 const tx = await signer.sendTransaction({ 
