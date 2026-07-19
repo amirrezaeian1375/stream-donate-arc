@@ -83,7 +83,7 @@
                     <div class="glass p-10 rounded-[3.5rem] border-white/5 shadow-2xl">
                         <div class="space-y-6">
                             <input type="text" id="donorName" placeholder="Donor Name (Optional)" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white">
-                            <div><label class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest px-1">Amount (Min 0.01 USDC)</label><input type="number" id="tipAmount" min="0.01" step="0.01" placeholder="1.00" class="w-full glass p-6 rounded-2xl outline-none text-3xl font-black text-white"></div>
+                            <div><label class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest px-1">Amount (Min 0.01 ARC)</label><input type="number" id="tipAmount" min="0.01" step="0.01" placeholder="1.00" class="w-full glass p-6 rounded-2xl outline-none text-3xl font-black text-white"></div>
                             <textarea id="tipMsg" rows="3" placeholder="Write a message..." class="w-full glass p-5 rounded-2xl outline-none text-sm resize-none text-white"></textarea>
                             <button onclick="executeTip()" class="w-full neon-btn py-6 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.3em] text-white">Donate Stream</button>
                         </div>
@@ -126,6 +126,7 @@
         ];
         const avatarSeeds = ["Aria", "Milo", "Kiki", "Leo", "Luna", "Jasper", "Nova", "Felix", "Nala", "Buster", "Zoe", "Finn", "Maya", "Oscar", "Cleo"];
         let selectedAvatar = "", selectedGames = [], userWallet = "";
+        let qrCodeInstance = null;
         
         let fallbackStreamers = [
             { user: "amirrezaeian", games: ["Dota 2", "FIFA"], img: "https://api.dicebear.com/7.x/adventurer/svg?seed=Aria", wallet: "0x562639eAA3e16199F29206f3f57aD3daD5903ac4", twitch: "#", kick: "#" }
@@ -136,13 +137,11 @@
                 alert("Please install MetaMask!");
                 return false;
             }
-
             try {
                 const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 userWallet = accs[0];
 
                 const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-                
                 if (currentChainId.toLowerCase() !== arcChainId.toLowerCase()) {
                     try {
                         await window.ethereum.request({
@@ -158,16 +157,12 @@
                                         chainId: arcChainId,
                                         chainName: 'Arc Testnet',
                                         rpcUrls: ['https://rpc.testnet.arc.network'],
-                                        nativeCurrency: {
-                                            name: 'Arc',
-                                            symbol: 'ARC', 
-                                            decimals: 18
-                                        },
+                                        nativeCurrency: { name: 'Arc', symbol: 'ARC', decimals: 18 },
                                         blockExplorerUrls: ['https://explorer.testnet.arc.network']
                                     }],
                                 });
                             } catch (addError) {
-                                alert("Failed to add Arc Testnet to MetaMask: " + addError.message);
+                                alert("Failed to add Arc Testnet: " + addError.message);
                                 return false;
                             }
                         } else {
@@ -176,11 +171,9 @@
                         }
                     }
                 }
-
                 document.getElementById('connectBtn').innerText = userWallet.substring(0,6) + "...";
                 if(document.getElementById('regWallet')) document.getElementById('regWallet').value = userWallet;
                 return true;
-
             } catch (e) {
                 alert("Wallet connection error: " + e.message);
                 return false;
@@ -189,9 +182,10 @@
 
         function showView(v) { 
             document.querySelectorAll('.view').forEach(e => e.classList.remove('active')); 
-            document.getElementById(v + 'View').classList.add('active'); 
+            const targetView = document.getElementById(v + 'View');
+            if(targetView) targetView.classList.add('active'); 
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            if(v === 'home') window.history.replaceState({}, '', window.location.pathname);
+            if(v === 'home') window.history.replaceState({}, '', window.location.origin + window.location.pathname);
         }
 
         function toggleGame(el, g) {
@@ -208,16 +202,18 @@
                 for(let i=0; i<count; i++) {
                     const user = await contract.streamerList(i);
                     const data = await contract.getStreamer(user);
-                    list.push({
-                        user: data.username,
-                        games: data.games,
-                        img: data.avatar,
-                        wallet: data.wallet,
-                        twitch: "#",
-                        kick: "#"
-                    });
+                    if(data.isRegistered) {
+                        list.push({
+                            user: data.username,
+                            games: data.games,
+                            img: data.avatar,
+                            wallet: data.wallet,
+                            twitch: "#",
+                            kick: "#"
+                        });
+                    }
                 }
-                return list;
+                return list.length > 0 ? list : fallbackStreamers;
             } catch(e) {
                 console.error("Failed to fetch on-chain data, using fallback:", e);
                 return fallbackStreamers;
@@ -225,12 +221,14 @@
         }
         
         async function renderStreamers() {
-            const s = document.getElementById('searchInput').value.toLowerCase(), f = document.getElementById('gameFilter').value, l = document.getElementById('streamerList');
+            const s = document.getElementById('searchInput').value.toLowerCase();
+            const f = document.getElementById('gameFilter').value;
+            const l = document.getElementById('streamerList');
             l.innerHTML = "<div class='text-center text-slate-400 col-span-full py-10'>Syncing with Arc Network...</div>";
             
             const onChainData = await fetchOnChainStreamers();
-            
             const filtered = onChainData.filter(st => st.user.toLowerCase().includes(s) && (f === 'All' || st.games.includes(f)));
+            
             if(filtered.length === 0) {
                 l.innerHTML = "<div class='text-center text-slate-500 col-span-full py-10'>No Streamers Found</div>";
                 return;
@@ -249,12 +247,14 @@
         async function handleRegister(e) {
             e.preventDefault();
             if(!userWallet) { const connected = await connectWallet(); if(!connected) return; }
-            const user = document.getElementById('regUser').value;
+            const user = document.getElementById('regUser').value.trim();
             const btn = document.getElementById('regBtn');
             
             if (!selectedAvatar) return alert("Select a character!");
-            let finalGames = [...selectedGames]; const other = document.getElementById('regOtherGames').value;
-            if (other) finalGames.push(other); if (finalGames.length === 0) return alert("Select at least one game!");
+            let finalGames = [...selectedGames]; 
+            const other = document.getElementById('regOtherGames').value.trim();
+            if (other) finalGames.push(other); 
+            if (finalGames.length === 0) return alert("Select at least one game!");
 
             try {
                 btn.innerText = "Processing Transaction..."; btn.disabled = true;
@@ -262,6 +262,13 @@
                 const signer = provider.getSigner();
                 const contract = new ethers.Contract(contractAddress, abi, signer);
                 
+                // Direct on-chain check to ensure the username is not already taken
+                const existing = await contract.getStreamer(user);
+                if (existing.isRegistered) {
+                    alert("This username is already taken on-chain!");
+                    return;
+                }
+
                 const tx = await contract.register(user, finalGames, selectedAvatar);
                 alert("Transaction Broadcasted! Confirming on Arc Testnet..."); 
                 await tx.wait();
@@ -270,7 +277,8 @@
                 await renderStreamers(); 
                 showView('home');
             } catch (e) { 
-                alert("Registration failed! Unique username or wallet might be already taken."); 
+                console.error(e);
+                alert("Registration failed! This account or username might already be active."); 
             } finally { 
                 btn.innerText = "Launch Profile on Arc Network"; btn.disabled = false; 
             }
@@ -279,15 +287,24 @@
         async function openDonate(u) {
             const onChainData = await fetchOnChainStreamers();
             const c = onChainData.find(st => st.user.toLowerCase() === u.toLowerCase());
-            if(!c) return;
+            if(!c) {
+                alert("Streamer not found!");
+                showView('home');
+                return;
+            }
             
-            document.getElementById('targetName').innerText = c.user; document.getElementById('targetImg').src = c.img;
-            document.getElementById('targetTwitch').href = c.twitch; document.getElementById('targetKick').href = c.kick;
+            document.getElementById('targetName').innerText = c.user; 
+            document.getElementById('targetImg').src = c.img;
+            document.getElementById('targetTwitch').href = c.twitch; 
+            document.getElementById('targetKick').href = c.kick;
             document.getElementById('targetGames').innerHTML = c.games.map(g => `<span class="game-tag text-xs">${g}</span>`).join('');
             
-            const url = window.location.origin + window.location.pathname + "?streamer=" + c.user;
-            document.getElementById('qrcode').innerHTML = ""; 
-            new QRCode(document.getElementById("qrcode"), { text: url, width: 140, height: 140 });
+            const url = window.location.origin + window.location.pathname + "?streamer=" + encodeURIComponent(c.user);
+            
+            // Re-render the QR Code container to prevent layout conflicts with previous instances
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = ""; 
+            qrCodeInstance = new QRCode(qrContainer, { text: url, width: 140, height: 140 });
             
             showView('donate'); 
             window.history.replaceState({}, '', url);
@@ -295,39 +312,62 @@
 
         async function executeTip() {
             if(!userWallet) { const connected = await connectWallet(); if(!connected) return; }
-            const amt = document.getElementById('tipAmount').value, sName = document.getElementById('targetName').innerText;
-            if(amt < 0.01) return alert("Min donation is 0.01 USDC");
+            const amt = document.getElementById('tipAmount').value;
+            const sName = document.getElementById('targetName').innerText;
+            if(!amt || amt < 0.01) return alert("Min donation is 0.01 ARC");
             
             try {
                 const provider = new ethers.providers.Web3Provider(window.ethereum); 
                 const signer = provider.getSigner(); 
                 const onChainData = await fetchOnChainStreamers();
                 const st = onChainData.find(s => s.user === sName);
-                
-                const parsedAmount = ethers.utils.parseUnits(amt.toString(), 6);
+                if(!st) return alert("Streamer data missing.");
+
+                // Standard Web3 unit formatting using parseEther
+                const parsedAmount = ethers.utils.parseEther(amt.toString());
                 
                 const tx = await signer.sendTransaction({ 
                     to: st.wallet, 
                     value: parsedAmount 
                 });
                 
-                alert("Donation pending on Arc Network..."); 
+                alert(`Donation pending on Arc Network for ${sName}...`); 
                 await tx.wait();
-                alert("Thank you! You have successfully donated to " + sName + " ☕️");
+                alert(`Thank you! You have successfully donated to ${sName} ☕️`);
             } catch (e) { 
-                alert("Donation Failed! Check your Arc Testnet USDC balance."); 
+                console.error(e);
+                alert("Donation Failed! Please check your balance or wallet connection."); 
             }
         }
 
-        function copyPayLink() { navigator.clipboard.writeText(window.location.origin + window.location.pathname + "?streamer=" + document.getElementById('targetName').innerText); alert("Donation Link Copied!"); }
-        function setupAvatarPicker() { document.getElementById('avatarPicker').innerHTML = avatarSeeds.map(s => { const u = `https://api.dicebear.com/7.x/adventurer/svg?seed=${s}`; return `<img src="${u}" class="avatar-box" onclick="selectAvatar(this, '${u}')">`; }).join(''); }
-        function selectAvatar(el, u) { document.querySelectorAll('.avatar-box').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); selectedAvatar = u; }
+        function copyPayLink() { 
+            const u = window.location.origin + window.location.pathname + "?streamer=" + encodeURIComponent(document.getElementById('targetName').innerText);
+            navigator.clipboard.writeText(u); 
+            alert("Donation Link Copied!"); 
+        }
+
+        function setupAvatarPicker() { 
+            document.getElementById('avatarPicker').innerHTML = avatarSeeds.map(s => { 
+                const u = `https://api.dicebear.com/7.x/adventurer/svg?seed=${s}`; 
+                return `<img src="${u}" class="avatar-box" onclick="selectAvatar(this, '${u}')">`; 
+            }).join(''); 
+        }
+
+        function selectAvatar(el, u) { 
+            document.querySelectorAll('.avatar-box').forEach(i => i.classList.remove('selected')); 
+            el.classList.add('selected'); 
+            selectedAvatar = u; 
+        }
         
-        window.onload = () => { 
+        window.onload = async () => { 
             setupAvatarPicker(); 
-            renderStreamers(); 
+            await renderStreamers(); 
+            
+            // Route deep links for dedicated streamer donation profiles
             const p = new URLSearchParams(window.location.search); 
-            if(p.has('streamer')) openDonate(p.get('streamer')); 
+            if(p.has('streamer')) {
+                openDonate(p.get('streamer'));
+            }
         };
     </script>
 </body>
