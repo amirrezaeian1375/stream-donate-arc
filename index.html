@@ -132,20 +132,59 @@
         ];
 
         async function connectWallet() {
-            if (window.ethereum) {
-                try {
-                    const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const cid = await window.ethereum.request({ method: 'eth_chainId' });
-                    if(cid !== arcChainId) {
-                        alert("Please switch your MetaMask to Arc Testnet!");
-                        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: arcChainId }] });
+            if (!window.ethereum) {
+                alert("Please install MetaMask!");
+                return false;
+            }
+
+            try {
+                const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                userWallet = accs[0];
+
+                const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+                
+                if (currentChainId.toLowerCase() !== arcChainId.toLowerCase()) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: arcChainId }],
+                        });
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            try {
+                                await window.ethereum.request({
+                                    method: 'wallet_addEthereumChain',
+                                    params: [{
+                                        chainId: arcChainId,
+                                        chainName: 'Arc Testnet',
+                                        rpcUrls: ['https://rpc.testnet.arc.network'],
+                                        nativeCurrency: {
+                                            name: 'Arc',
+                                            symbol: 'ARC', 
+                                            decimals: 18
+                                        },
+                                        blockExplorerUrls: ['https://explorer.testnet.arc.network']
+                                    }],
+                                });
+                            } catch (addError) {
+                                alert("Failed to add Arc Testnet to MetaMask: " + addError.message);
+                                return false;
+                            }
+                        } else {
+                            alert("Failed to switch network: " + switchError.message);
+                            return false;
+                        }
                     }
-                    userWallet = accs[0];
-                    document.getElementById('connectBtn').innerText = userWallet.substring(0,6) + "...";
-                    if(document.getElementById('regWallet')) document.getElementById('regWallet').value = userWallet;
-                    return true;
-                } catch (e) { alert("Wallet error: " + e.message); return false; }
-            } else { alert("Please install MetaMask!"); return false; }
+                }
+
+                document.getElementById('connectBtn').innerText = userWallet.substring(0,6) + "...";
+                if(document.getElementById('regWallet')) document.getElementById('regWallet').value = userWallet;
+                return true;
+
+            } catch (e) {
+                alert("Wallet connection error: " + e.message);
+                return false;
+            }
         }
 
         function showView(v) { 
@@ -209,7 +248,7 @@
 
         async function handleRegister(e) {
             e.preventDefault();
-            if(!userWallet) { alert("Please connect your wallet first!"); await connectWallet(); return; }
+            if(!userWallet) { const connected = await connectWallet(); if(!connected) return; }
             const user = document.getElementById('regUser').value;
             const btn = document.getElementById('regBtn');
             
@@ -255,7 +294,7 @@
         }
 
         async function executeTip() {
-            if(!userWallet) { alert("Please connect your wallet first!"); await connectWallet(); return; }
+            if(!userWallet) { const connected = await connectWallet(); if(!connected) return; }
             const amt = document.getElementById('tipAmount').value, sName = document.getElementById('targetName').innerText;
             if(amt < 0.01) return alert("Min donation is 0.01 USDC");
             
