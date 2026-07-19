@@ -66,7 +66,6 @@
             </div>
         </section>
 
-        <!-- REGISTER VIEW -->
         <section id="registerView" class="view max-w-2xl mx-auto text-white">
             <div class="glass p-10 rounded-[3.5rem] shadow-2xl relative overflow-hidden">
                 <h2 class="text-3xl font-black cyber-font mb-10 text-center uppercase tracking-tight text-white text-left">Streamer Registration</h2>
@@ -81,7 +80,6 @@
             </div>
         </section>
 
-        <!-- DONATE VIEW -->
         <section id="donateView" class="view max-w-5xl mx-auto">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 glass p-12 rounded-[4.5rem] text-white">
                 <div class="flex flex-col items-center space-y-10 text-center">
@@ -110,7 +108,7 @@
     </main>
 
     <footer class="mt-40 border-t border-white/5 py-16 px-10 glass text-white text-left">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 text-white text-left text-white text-left">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 text-white text-left">
             <div class="flex items-center gap-10">
                 <div class="flex items-center gap-3">
                     <img src="https://i.postimg.cc/vT96JDNC/avatar.jpg" class="footer-icon-small">
@@ -124,16 +122,18 @@
             </div>
             <div class="flex gap-12 text-[10px] font-bold uppercase text-slate-500 text-white"><a href="https://x.com/amirrezaeian75" target="_blank" class="hover:text-purple-400 transition text-white">Twitter (X)</a><a href="https://github.com/amirrezaeian1375/stream-donate-arc" target="_blank" class="hover:text-purple-400 transition text-white text-left text-white">GitHub</a></div>
         </div>
-        <div class="max-w-7xl mx-auto mt-16 text-center text-[9px] text-slate-700 leading-relaxed uppercase tracking-widest italic text-center text-white text-center text-white text-center">Arc is a trademark of Circle Internet Group, Inc. StreamPay is an independent project.</div>
+        <div class="max-w-7xl mx-auto mt-16 text-center text-[9px] text-slate-700 leading-relaxed uppercase tracking-widest italic text-white">Arc is a trademark of Circle Internet Group, Inc. StreamPay is an independent project.</div>
     </footer>
 
     <script>
         const contractAddress = "0x2a045a73f9D41531325028a4a9D79db201393EB6";
         const arcChainId = "0x4cef52";
         const rpcUrl = "https://rpc.testnet.arc.network";
+        
+        // اصلاح شده: رفع مشکل تداخل Tuple و بازگردانی متغیرهای مجزا
         const abi = [
             "function register(string memory _user, string[] memory _games, string memory _avatar) public",
-            "function getStreamer(string memory _user) public view returns (tuple(string username, string[] games, string avatar, address wallet, bool isRegistered))",
+            "function getStreamer(string memory _user) public view returns (string username, string[] games, string avatar, address wallet, bool isRegistered)",
             "function getStreamerCount() public view returns (uint256)",
             "function streamerList(uint256) public view returns (string)",
             "function walletToUser(address) public view returns (string)",
@@ -192,7 +192,7 @@
             l.innerHTML = filtered.length === 0 ? '<div class="col-span-full text-center text-slate-600 uppercase font-bold py-20 text-xs text-white">No registered streamers yet.</div>' : filtered.map(st => `
                 <div class="glass p-10 rounded-[3rem] text-center cursor-pointer group flex flex-col items-center hover:-translate-y-3 transition-all duration-500" onclick="openDonate('${st.user}')">
                     <img src="${st.img}" class="profile-img-card mb-8 group-hover:scale-110 transition duration-700 border-2 border-purple-500 shadow-xl">
-                    <h3 class="cyber-font font-black text-2xl mb-4 uppercase text-white tracking-tighter text-center text-white">${st.user}</h3>
+                    <h3 class="cyber-font font-black text-2xl mb-4 uppercase text-white tracking-tighter text-center">${st.user}</h3>
                     <div class="flex flex-wrap justify-center gap-2 mb-10 text-white">${st.games.map(g => `<span class="game-tag">${g}</span>`).join('')}</div>
                     <button class="w-full py-4 rounded-2xl border border-white/10 text-[9px] font-black uppercase tracking-[0.2em] group-hover:bg-purple-600 transition-all text-white text-center">Donate Stream</button>
                 </div>`).join('');
@@ -239,7 +239,9 @@
 
         async function executeTip() {
             if(!userWallet) { alert("Please connect your wallet!"); await connectWallet(); return; }
-            const amt = document.getElementById('tipAmount').value, sName = document.getElementById('targetName').innerText;
+            const amt = document.getElementById('tipAmount').value;
+            // اصلاح شده: تغییر innerText به textContent جهت دور زدن استایل css uppercase و حل ارور یافت نشدن آیدی
+            const sName = document.getElementById('targetName').textContent;
             const dName = document.getElementById('donorName').value || "", tipMsg = document.getElementById('tipMsg').value || "Support!";
             try {
                 const btn = document.getElementById('tipBtn'); btn.innerText = "Processing..."; btn.disabled = true;
