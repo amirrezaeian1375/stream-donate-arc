@@ -41,7 +41,6 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-6 mt-16 text-left">
-        <!-- HOME VIEW -->
         <section id="homeView" class="view active text-white">
             <div class="flex flex-col lg:flex-row justify-between items-end mb-16 gap-8">
                 <div>
@@ -55,7 +54,6 @@
             <div id="streamerList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10"></div>
         </section>
 
-        <!-- REGISTER VIEW -->
         <section id="registerView" class="view max-w-2xl mx-auto text-white">
             <div class="glass p-12 rounded-[3.5rem] shadow-2xl relative overflow-hidden">
                 <h2 class="text-3xl font-black cyber-font mb-10 text-center uppercase tracking-tight">Streamer Registration</h2>
@@ -70,7 +68,6 @@
             </div>
         </section>
 
-        <!-- DONATE VIEW -->
         <section id="donateView" class="view max-w-5xl mx-auto">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 glass p-12 rounded-[4.5rem] text-white">
                 <div class="flex flex-col items-center space-y-10 text-center text-white">
@@ -104,12 +101,12 @@
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 text-white">
             <div class="flex items-center gap-10">
                 <div class="flex items-center gap-3">
-                    <img id="footerAvatar" src="" class="footer-icon-small">
+                    <img id="footerAvatar" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Aria" class="footer-icon-small">
                     <p class="text-xs text-slate-400">Project by <b>amirrezaeian</b></p>
                 </div>
                 <div class="w-px h-8 bg-white/10"></div>
                 <div class="flex items-center gap-3">
-                    <img id="footerArc" src="" class="footer-icon-small">
+                    <div class="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center font-bold text-[8px]">ARC</div>
                     <p class="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Built on Arc Network™</p>
                 </div>
             </div>
@@ -120,12 +117,18 @@
 
     <script>
         const contractAddress = "0x03D8d075aF53fE525F4d270bc1a70734F7F8d541";
-        const arcChainId = "0x4cef52"; 
-        const abi = ["function register(string memory _user, string[] memory _games, string memory _avatar) public"];
+        const arcChainId = "0x4cef52"; // 5042002 in hex
+        const abi = [
+            "function register(string memory _user, string[] memory _games, string memory _avatar) public",
+            "function getStreamer(string memory _user) public view returns (tuple(string username, string[] games, string avatar, address wallet, bool isRegistered))",
+            "function getStreamerCount() public view returns (uint256)",
+            "function streamerList(uint256) public view returns (string)"
+        ];
         const avatarSeeds = ["Aria", "Milo", "Kiki", "Leo", "Luna", "Jasper", "Nova", "Felix", "Nala", "Buster", "Zoe", "Finn", "Maya", "Oscar", "Cleo"];
         let selectedAvatar = "", selectedGames = [], userWallet = "";
         
-        let streamers = [
+        // بک‌آپ برای حالت لود اولیه یا تست
+        let fallbackStreamers = [
             { user: "amirrezaeian", games: ["Dota 2", "FIFA"], img: "https://api.dicebear.com/7.x/adventurer/svg?seed=Aria", wallet: "0x562639eAA3e16199F29206f3f57aD3daD5903ac4", twitch: "#", kick: "#" }
         ];
 
@@ -135,7 +138,7 @@
                     const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     const cid = await window.ethereum.request({ method: 'eth_chainId' });
                     if(cid !== arcChainId) {
-                        alert("Please switch to Arc Testnet!");
+                        alert("Please switch your MetaMask to Arc Testnet!");
                         await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: arcChainId }] });
                     }
                     userWallet = accs[0];
@@ -143,7 +146,7 @@
                     if(document.getElementById('regWallet')) document.getElementById('regWallet').value = userWallet;
                     return true;
                 } catch (e) { alert("Wallet error: " + e.message); return false; }
-            } else { alert("Install MetaMask!"); return false; }
+            } else { alert("Please install MetaMask!"); return false; }
         }
 
         function showView(v) { 
@@ -157,13 +160,46 @@
             if (selectedGames.includes(g)) { selectedGames = selectedGames.filter(i => i !== g); el.classList.remove('selected'); }
             else { selectedGames.push(g); el.classList.add('selected'); }
         }
+
+        // خواندن داده‌های زنده مستقیم از شبکه ارک
+        async function fetchOnChainStreamers() {
+            try {
+                const provider = new ethers.providers.JsonRpcProvider("https://rpc.testnet.arc.network");
+                const contract = new ethers.Contract(contractAddress, abi, provider);
+                const count = await contract.getStreamerCount();
+                let list = [];
+                for(let i=0; i<count; i++) {
+                    const user = await contract.streamerList(i);
+                    const data = await contract.getStreamer(user);
+                    list.push({
+                        user: data.username,
+                        games: data.games,
+                        img: data.avatar,
+                        wallet: data.wallet,
+                        twitch: "#",
+                        kick: "#"
+                    });
+                }
+                return list;
+            } catch(e) {
+                console.error("Failed to fetch on-chain data, using fallback:", e);
+                return fallbackStreamers;
+            }
+        }
         
-        function renderStreamers() {
+        async function renderStreamers() {
             const s = document.getElementById('searchInput').value.toLowerCase(), f = document.getElementById('gameFilter').value, l = document.getElementById('streamerList');
-            const stored = JSON.parse(localStorage.getItem('streampay_v3_data') || "[]");
-            const combined = [...stored, ...streamers];
-            const unique = combined.filter((v,i,a)=>a.findIndex(t=>(t.user.toLowerCase()===v.user.toLowerCase()))===i);
-            l.innerHTML = unique.filter(st => st.user.toLowerCase().includes(s) && (f === 'All' || st.games.includes(f))).map(st => `
+            l.innerHTML = "<div class='text-center text-slate-400 col-span-full py-10'>Syncing with Arc Network...</div>";
+            
+            const onChainData = await fetchOnChainStreamers();
+            
+            const filtered = onChainData.filter(st => st.user.toLowerCase().includes(s) && (f === 'All' || st.games.includes(f)));
+            if(filtered.length === 0) {
+                l.innerHTML = "<div class='text-center text-slate-500 col-span-full py-10'>No Streamers Found</div>";
+                return;
+            }
+
+            l.innerHTML = filtered.map(st => `
                 <div class="glass p-10 rounded-[3rem] text-center cursor-pointer group flex flex-col items-center hover:-translate-y-3 transition-all duration-500" onclick="openDonate('${st.user}')">
                     <img src="${st.img}" class="profile-img-card mb-8 group-hover:scale-110 transition duration-700 border-2 border-purple-500">
                     <h3 class="cyber-font font-black text-2xl mb-4 uppercase text-white tracking-tighter">${st.user}</h3>
@@ -178,8 +214,7 @@
             if(!userWallet) { alert("Please connect your wallet first!"); await connectWallet(); return; }
             const user = document.getElementById('regUser').value;
             const btn = document.getElementById('regBtn');
-            const stored = JSON.parse(localStorage.getItem('streampay_v3_data') || "[]");
-            if ([...stored, ...streamers].find(s => s.user.toLowerCase() === user.toLowerCase())) return alert("Transaction rejected: Username already registered.");
+            
             if (!selectedAvatar) return alert("Select a character!");
             let finalGames = [...selectedGames]; const other = document.getElementById('regOtherGames').value;
             if (other) finalGames.push(other); if (finalGames.length === 0) return alert("Select at least one game!");
@@ -189,53 +224,74 @@
                 const provider = new ethers.providers.Web3Provider(window.ethereum);
                 const signer = provider.getSigner();
                 const contract = new ethers.Contract(contractAddress, abi, signer);
+                
                 const tx = await contract.register(user, finalGames, selectedAvatar);
-                alert("Confirming on Arc Testnet..."); await tx.wait();
-                stored.unshift({ user, games: finalGames, img: selectedAvatar, wallet: userWallet, twitch: document.getElementById('regTwitch').value || "#", kick: document.getElementById('regKick').value || "#" });
-                localStorage.setItem('streampay_v3_data', JSON.stringify(stored));
-                renderStreamers(); showView('home'); alert("Success! Profile Active on Arc Network.");
-            } catch (e) { alert("Registration failed! Check your Arc wallet."); }
-            finally { btn.innerText = "Launch Profile"; btn.disabled = false; }
+                alert("Transaction Broadcasted! Confirming on Arc Testnet..."); 
+                await tx.wait();
+                
+                alert("Success! Profile permanently active on Arc Network.");
+                await renderStreamers(); 
+                showView('home');
+            } catch (e) { 
+                alert("Registration failed! Unique username or wallet might be already taken."); 
+            } finally { 
+                btn.innerText = "Launch Profile on Arc Network"; btn.disabled = false; 
+            }
         }
 
-        function openDonate(u) {
-            const stored = JSON.parse(localStorage.getItem('streampay_v3_data') || "[]");
-            const combined = [...stored, ...streamers];
-            const c = combined.find(st => st.user.toLowerCase() === u.toLowerCase());
+        async function openDonate(u) {
+            const onChainData = await fetchOnChainStreamers();
+            const c = onChainData.find(st => st.user.toLowerCase() === u.toLowerCase());
             if(!c) return;
+            
             document.getElementById('targetName').innerText = c.user; document.getElementById('targetImg').src = c.img;
             document.getElementById('targetTwitch').href = c.twitch; document.getElementById('targetKick').href = c.kick;
             document.getElementById('targetGames').innerHTML = c.games.map(g => `<span class="game-tag text-xs">${g}</span>`).join('');
+            
             const url = window.location.origin + window.location.pathname + "?streamer=" + c.user;
-            document.getElementById('qrcode').innerHTML = ""; new QRCode(document.getElementById("qrcode"), { text: url, width: 140, height: 140 });
-            showView('donate'); window.history.replaceState({}, '', url);
+            document.getElementById('qrcode').innerHTML = ""; 
+            new QRCode(document.getElementById("qrcode"), { text: url, width: 140, height: 140 });
+            
+            showView('donate'); 
+            window.history.replaceState({}, '', url);
         }
 
         async function executeTip() {
             if(!userWallet) { alert("Please connect your wallet first!"); await connectWallet(); return; }
             const amt = document.getElementById('tipAmount').value, sName = document.getElementById('targetName').innerText;
             if(amt < 0.01) return alert("Min donation is 0.01 USDC");
+            
             try {
-                const provider = new ethers.providers.Web3Provider(window.ethereum); const signer = provider.getSigner(); 
-                const combined = [...JSON.parse(localStorage.getItem('streampay_v3_data') || "[]"), ...streamers];
-                const st = combined.find(s => s.user === sName);
-                const tx = await signer.sendTransaction({ to: st.wallet, value: ethers.utils.parseEther(amt.toString()) });
-                alert("Transaction pending..."); await tx.wait();
+                const provider = new ethers.providers.Web3Provider(window.ethereum); 
+                const signer = provider.getSigner(); 
+                const onChainData = await fetchOnChainStreamers();
+                const st = onChainData.find(s => s.user === sName);
+                
+                // اصلاح اعشار روی بلاکچین ارک بومی (6 رقم برای USDC)
+                const parsedAmount = ethers.utils.parseUnits(amt.toString(), 6);
+                
+                const tx = await signer.sendTransaction({ 
+                    to: st.wallet, 
+                    value: parsedAmount 
+                });
+                
+                alert("Donation pending on Arc Network..."); 
+                await tx.wait();
                 alert("Thank you! You have successfully donated to " + sName + " ☕️");
-            } catch (e) { alert("Donation Failed!"); }
+            } catch (e) { 
+                alert("Donation Failed! Check your Arc Testnet USDC balance."); 
+            }
         }
 
-        function copyPayLink() { navigator.clipboard.writeText(window.location.origin + window.location.pathname + "?streamer=" + document.getElementById('targetName').innerText); alert("Link Copied!"); }
+        function copyPayLink() { navigator.clipboard.writeText(window.location.origin + window.location.pathname + "?streamer=" + document.getElementById('targetName').innerText); alert("Donation Link Copied!"); }
         function setupAvatarPicker() { document.getElementById('avatarPicker').innerHTML = avatarSeeds.map(s => { const u = `https://api.dicebear.com/7.x/adventurer/svg?seed=${s}`; return `<img src="${u}" class="avatar-box" onclick="selectAvatar(this, '${u}')">`; }).join(''); }
         function selectAvatar(el, u) { document.querySelectorAll('.avatar-box').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); selectedAvatar = u; }
+        
         window.onload = () => { 
             setupAvatarPicker(); 
-            // In footer Base64 images are injected here
-            const fAv = document.getElementById('footerAvatar'); const fAr = document.getElementById('footerArc');
-            fAv.src = "data:image/jpeg;base64,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";
-            fAr.src = "data:image/jpeg;base64,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";
             renderStreamers(); 
-            const p = new URLSearchParams(window.location.search); if(p.has('streamer')) openDonate(p.get('streamer')); 
+            const p = new URLSearchParams(window.location.search); 
+            if(p.has('streamer')) openDonate(p.get('streamer')); 
         };
     </script>
 </body>
