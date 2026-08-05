@@ -93,7 +93,7 @@
                     <div class="glass p-10 rounded-[3.5rem] border-white/5 shadow-2xl text-white">
                         <div class="space-y-6">
                             <input type="text" id="donorName" placeholder="Donor Name (Optional)" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white">
-                            <div><label class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest px-1">Amount (ARC Token)</label><div class="relative"><input type="number" id="tipAmount" min="0.01" step="0.01" placeholder="1.00" class="w-full glass p-6 rounded-2xl outline-none text-3xl font-black text-white"><span class="absolute right-8 top-7 text-slate-500 font-bold uppercase text-white">ARC</span></div></div>
+                            <div><label class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest px-1">Amount (USDC Token)</label><div class="relative"><input type="number" id="tipAmount" min="0.01" step="0.01" placeholder="1.00" class="w-full glass p-6 rounded-2xl outline-none text-3xl font-black text-white"><span class="absolute right-8 top-7 text-slate-500 font-bold uppercase text-white">USDC</span></div></div>
                             <textarea id="tipMsg" rows="3" placeholder="Message..." class="w-full glass p-5 rounded-2xl outline-none text-sm resize-none text-white"></textarea>
                             <button id="tipBtn" onclick="executeTip()" class="w-full neon-btn py-6 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.3em] text-white">Donate Stream</button>
                         </div>
@@ -214,7 +214,7 @@
                     const st = blockchainStreamers.find(s => s.wallet.toLowerCase() === to.toLowerCase());
                     const targetName = st ? st.user : "Streamer";
                     const displayName = donorName !== '' ? donorName : (from.substring(0,4)+'...'+from.substring(38));
-                    return `<div class="donation-item"><p class="text-[9px] font-bold text-slate-500 mb-1">${escapeHtml(displayName)}</p><p class="text-xs font-medium"><span class="text-cyan-400 font-black">${ethers.utils.formatEther(amount)} ARC</span> tipped to <span class="text-purple-400 font-bold">${escapeHtml(targetName)}</span></p></div>`;
+                    return `<div class="donation-item"><p class="text-[9px] font-bold text-slate-500 mb-1">${escapeHtml(displayName)}</p><p class="text-xs font-medium"><span class="text-cyan-400 font-black">${ethers.utils.formatEther(amount)} USDC</span> tipped to <span class="text-purple-400 font-bold">${escapeHtml(targetName)}</span></p></div>`;
                 }).join('');
             } catch (e) { console.log("Feed sync error", e); }
         }
