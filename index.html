@@ -1,266 +1,371 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamPay - Gaming Donation Hub</title>
+    <title>ArcStream - Streamer Donation Platform</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Inter:wght@400;600;700&display=swap');
-        :root { --p: #a855f7; --s: #06b6d4; --d: #020617; }
-        body { background-color: var(--d); color: white; font-family: 'Inter', sans-serif; background-image: linear-gradient(rgba(2, 6, 23, 0.9), rgba(2, 6, 23, 0.95)), url('https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=2070'); background-size: cover; background-attachment: fixed; min-height: 100vh; text-align: left; }
-        .cyber-font { font-family: 'Orbitron', sans-serif; }
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .neon-btn { background: linear-gradient(90deg, var(--p), var(--s)); box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); transition: all 0.3s; }
-        .neon-btn:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(6, 182, 212, 0.6); }
-        .view { display: none; }
-        .view.active { display: block; animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .avatar-box { width: 65px; height: 65px; cursor: pointer; border: 2px solid transparent; border-radius: 12px; transition: 0.2s; background: rgba(255,255,255,0.05); }
-        .avatar-box.selected { border-color: var(--s); box-shadow: 0 0 15px var(--s); background: rgba(6, 182, 212, 0.1); }
-        .game-tag { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc; font-size: 9px; font-weight: 800; padding: 2px 10px; border-radius: 6px; text-transform: uppercase; }
-        .footer-icon-small { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
-        .game-checkbox { cursor: pointer; border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 10px; transition: all 0.2s; font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.02); }
-        .game-checkbox.selected { background: var(--p); border-color: var(--p); color: white; box-shadow: 0 0 10px var(--p); }
-        .profile-img-card { width: 110px; height: 110px; object-fit: cover; border-radius: 28px; border: 2px solid var(--p); }
-        .donation-item { border-left: 3px solid var(--s); background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; margin-bottom: 12px; }
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #38bdf8;
+            --text-color: #f8fafc;
+            --text-secondary: #94a3b8;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--card-bg);
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--accent-color);
+            font-size: 1.8rem;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            background-color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            color: #fff;
+            box-sizing: border-box;
+        }
+
+        .streamers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .streamer-card {
+            background-color: var(--card-bg);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .streamer-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+        }
+
+        .streamer-addr {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            word-break: break-all;
+            margin-bottom: 15px;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .error { color: var(--danger-color); }
+        .success { color: var(--success-color); }
     </style>
 </head>
-<body class="pb-10">
+<body>
 
-    <nav class="sticky top-0 z-50 glass border-b border-white/5 px-8 py-4 flex justify-between items-center text-white">
-        <div class="flex items-center gap-4 cursor-pointer" onclick="showView('home')">
-            <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg font-black italic text-white">SP</div>
-            <h1 class="cyber-font text-2xl font-black tracking-tighter uppercase">StreamPay</h1>
+<div class="container">
+    <header>
+        <h1>ArcStream</h1>
+        <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+    </header>
+
+    <div class="card">
+        <h2>Register as Streamer</h2>
+        <div class="form-group">
+            <label for="streamerName">Channel Name</label>
+            <input type="text" id="streamerName" placeholder="Enter your channel name">
         </div>
-        <div class="flex items-center gap-6 text-[10px] font-bold uppercase">
-            <button onclick="showView('register')" class="text-slate-400 hover:text-white transition">Become Streamer</button>
-            <button id="connectBtn" onclick="connectWallet()" class="glass px-6 py-2 rounded-full border border-white/10 hover:bg-white/5 transition">Connect Wallet</button>
-        </div>
-    </nav>
+        <button onclick="registerStreamer()">Register</button>
+        <div id="regStatus" class="status"></div>
+    </div>
 
-    <main class="max-w-7xl mx-auto px-6 mt-16 text-left">
-        <section id="homeView" class="view active">
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-12 text-white">
-                <div class="lg:col-span-3">
-                    <div class="flex flex-col lg:flex-row justify-between items-end mb-12 gap-8 text-left">
-                        <h2 class="text-6xl font-black cyber-font mb-2 tracking-tighter uppercase">Streamers</h2>
-                        <div class="flex gap-4 w-full lg:w-auto">
-                            <input type="text" id="searchInput" oninput="renderUI()" placeholder="Search handle..." class="glass flex-1 lg:w-64 p-4 rounded-2xl outline-none text-sm text-white focus:border-cyan-500 transition">
-                            <select id="gameFilter" onchange="renderUI()" class="glass p-4 rounded-2xl text-[10px] font-bold uppercase outline-none text-white cursor-pointer"><option value="All">All Games</option><option value="Dota 2">Dota 2</option><option value="League of Legends">League of Legends</option><option value="CS2">CS2</option><option value="FIFA">FIFA</option><option value="Call of Duty">Call of Duty</option></select>
-                        </div>
-                    </div>
-                    <div id="loadingStatus" class="text-center text-slate-500 font-bold uppercase tracking-widest my-20">Syncing with Arc Network...</div>
-                    <div id="streamerList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
-                </div>
-                <div class="lg:col-span-1">
-                    <div class="glass p-6 rounded-[2.5rem] sticky top-28 border-white/5 shadow-2xl text-left">
-                        <h3 class="cyber-font text-lg font-black mb-6 uppercase tracking-tight text-cyan-400">Recent Tips</h3>
-                        <div id="recentDonations" class="space-y-4 max-h-[500px] overflow-y-auto">
-                            <p class="text-slate-600 text-[10px] text-center py-10 font-bold tracking-widest uppercase">No tips yet</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <h2>Active Streamers</h2>
+    <div id="streamersList" class="streamers-grid">
+        <p>Loading streamers from Arc Network...</p>
+    </div>
+</div>
 
-        <section id="registerView" class="view max-w-2xl mx-auto text-white">
-            <div class="glass p-10 rounded-[3.5rem] shadow-2xl relative overflow-hidden">
-                <h2 class="text-3xl font-black cyber-font mb-10 text-center uppercase tracking-tight text-white text-left">Streamer Registration</h2>
-                <form onsubmit="handleRegister(event)" class="space-y-10">
-                    <div><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-4 text-center">Select Character</label><div id="avatarPicker" class="grid grid-cols-5 gap-4 justify-items-center"></div></div>
-                    <div class="grid grid-cols-2 gap-6"><div class="space-y-2 text-left"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Unique Username</label><input type="text" id="regUser" required placeholder="handle" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white"></div><div class="space-y-2 text-left"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 text-nowrap">Your Arc Wallet</label><input type="text" id="regWallet" readonly class="w-full glass p-5 rounded-2xl outline-none text-[10px] font-mono opacity-60" placeholder="Connect Wallet First"></div></div>
-                    <div class="space-y-4 text-left"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Select Games</label><div id="gameCheckboxes" class="flex flex-wrap gap-3 text-white"><div class="game-checkbox" onclick="toggleGame(this, 'Dota 2')">Dota 2</div><div class="game-checkbox" onclick="toggleGame(this, 'League of Legends')">League of Legends</div><div class="game-checkbox" onclick="toggleGame(this, 'CS2')">CS2</div><div class="game-checkbox" onclick="toggleGame(this, 'FIFA')">FIFA</div><div class="game-checkbox" onclick="toggleGame(this, 'Call of Duty')">Call of Duty</div></div></div>
-                    <input type="text" id="regOtherGames" placeholder="Other Games (Optional)" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white">
-                    <div class="grid grid-cols-2 gap-6"><input type="url" id="regTwitch" placeholder="Twitch URL" class="glass p-5 rounded-2xl outline-none text-white text-xs"><input type="url" id="regKick" placeholder="Kick URL" class="glass p-5 rounded-2xl outline-none text-white text-xs"></div>
-                    <button id="regBtn" type="submit" class="w-full neon-btn py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-widest text-white">Launch Profile on Arc Network</button>
-                </form>
-            </div>
-        </section>
+<script>
+    // Arc Testnet RPC Endpoints
+    const ARC_RPC_URLS = [
+        "https://rpc.testnet.arc.network",
+        "https://rpc-testnet.arc.network",
+        "https://arc-testnet.rpc.thirdweb.com"
+    ];
 
-        <section id="donateView" class="view max-w-5xl mx-auto">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 glass p-12 rounded-[4.5rem] text-white">
-                <div class="flex flex-col items-center space-y-10 text-center">
-                    <button onclick="showView('home')" class="self-start text-[10px] font-bold text-slate-500 uppercase hover:text-white transition tracking-widest">← Back</button>
-                    <img id="targetImg" src="" class="w-56 h-56 rounded-[3.5rem] border-2 border-purple-500 shadow-2xl object-cover">
-                    <h2 id="targetName" class="text-5xl font-black cyber-font tracking-tighter uppercase text-white">Creator</h2>
-                    <div id="targetGames" class="flex flex-wrap justify-center gap-3 mt-6"></div>
-                    <div class="flex gap-4 w-full"><a id="targetTwitch" href="#" target="_blank" class="flex-1 glass py-5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest hover:bg-purple-600 transition text-white text-center text-xs">Twitch</a><a id="targetKick" href="#" target="_blank" class="flex-1 glass py-5 rounded-[1.5rem] text-[10px] font-bold uppercase tracking-widest hover:bg-green-600 transition text-white text-center text-xs">Kick</a></div>
-                </div>
-                <div class="space-y-10 text-left">
-                    <div class="glass p-10 rounded-[3.5rem] border-white/5 shadow-2xl text-white">
-                        <div class="space-y-6">
-                            <input type="text" id="donorName" placeholder="Donor Name (Optional)" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white">
-                            <div><label class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest px-1">Amount (Min 0.01 USDC)</label><div class="relative"><input type="number" id="tipAmount" min="0.01" step="0.01" placeholder="1.00" class="w-full glass p-6 rounded-2xl outline-none text-3xl font-black text-white"><span class="absolute right-8 top-7 text-slate-500 font-bold uppercase text-white">USDC</span></div></div>
-                            <textarea id="tipMsg" rows="3" placeholder="Message..." class="w-full glass p-5 rounded-2xl outline-none text-sm resize-none text-white"></textarea>
-                            <button id="tipBtn" onclick="executeTip()" class="w-full neon-btn py-6 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.3em] text-white">Donate Stream</button>
-                        </div>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div id="qrcode" class="bg-white p-3 rounded-[1.5rem] shadow-xl text-white text-center"></div>
-                        <button onclick="copyPayLink()" class="mt-6 text-[10px] font-bold text-cyan-400 uppercase tracking-widest hover:underline text-center text-white">Copy Donation Link</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
+    const CONTRACT_ADDRESS = "0x2a045a73f9D41531325028a4a9D79db201393EB6";
 
-    <footer class="mt-40 border-t border-white/5 py-16 px-10 glass text-white text-left">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 text-white text-left">
-            <div class="flex items-center gap-10">
-                <div class="flex items-center gap-3">
-                    <img src="https://i.postimg.cc/vT96JDNC/avatar.jpg" class="footer-icon-small">
-                    <p class="text-xs text-white">Project by <b>amirrezaeian</b></p>
-                </div>
-                <div class="w-px h-8 bg-white/10"></div>
-                <div class="flex items-center gap-3">
-                    <img src="https://i.postimg.cc/vHFnWL1s/arc-logo.jpg" class="footer-icon-small">
-                    <p class="text-[10px] uppercase font-bold text-slate-500 tracking-widest text-white">Built on Arc</p>
-                </div>
-            </div>
-            <div class="flex gap-12 text-[10px] font-bold uppercase text-slate-500 text-white"><a href="https://x.com/amirrezaeian75" target="_blank" class="hover:text-purple-400 transition text-white">Twitter (X)</a><a href="https://github.com/amirrezaeian1375/stream-donate-arc" target="_blank" class="hover:text-purple-400 transition text-white text-left text-white">GitHub</a></div>
-        </div>
-        <div class="max-w-7xl mx-auto mt-16 text-center text-[9px] text-slate-700 leading-relaxed uppercase tracking-widest italic text-white">Arc is a trademark of Circle Internet Group, Inc. StreamPay is an independent project.</div>
-    </footer>
+    const ABI = [
+        "function registerStreamer(string memory _name) public",
+        "function donate(address payable _streamer) public payable",
+        "function getStreamers() public view returns (address[] memory)",
+        "function streamers(address) public view returns (string memory name, address wallet, uint256 totalDonations, bool isRegistered)"
+    ];
 
-    <script>
-        const contractAddress = "0x2a045a73f9D41531325028a4a9D79db201393EB6";
-        const arcChainId = "0x4cef52";
-        const rpcUrl = "https://rpc.testnet.arc.network";
+    let provider;
+    let signer;
+    let contract;
+
+    async function getWorkingProvider() {
+        for (const rpc of ARC_RPC_URLS) {
+            try {
+                const tempProvider = new ethers.providers.JsonRpcProvider(rpc, "any");
+                await tempProvider.getBlockNumber();
+                return tempProvider;
+            } catch (err) {
+                console.warn("RPC connection failed, trying next:", rpc, err);
+            }
+        }
         
-        // اصلاح شده: رفع مشکل تداخل Tuple و بازگردانی متغیرهای مجزا
-        const abi = [
-            "function register(string memory _user, string[] memory _games, string memory _avatar) public",
-            "function getStreamer(string memory _user) public view returns (string username, string[] games, string avatar, address wallet, bool isRegistered)",
-            "function getStreamerCount() public view returns (uint256)",
-            "function streamerList(uint256) public view returns (string)",
-            "function walletToUser(address) public view returns (string)",
-            "function donate(string memory _user, string memory _donorName, string memory _message) public payable",
-            "event Donated(address indexed from, address indexed to, uint256 amount, string donorName, string message)"
-        ];
+        if (window.ethereum) {
+            return new ethers.providers.Web3Provider(window.ethereum, "any");
+        }
+        return null;
+    }
 
-        const avatarSeeds = ["Aria", "Milo", "Kiki", "Leo", "Luna", "Jasper", "Nova", "Felix", "Nala", "Buster", "Zoe", "Finn", "Maya", "Oscar", "Cleo"];
-        let selectedAvatar = "", selectedGames = [], userWallet = "", blockchainStreamers = [];
-
-        async function fetchStreamers() {
-            try {
-                const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-                const contract = new ethers.Contract(contractAddress, abi, provider);
-                const count = await contract.getStreamerCount();
-                let list = [];
-                for(let i=0; i<count.toNumber(); i++) {
-                    const username = await contract.streamerList(i);
-                    const data = await contract.getStreamer(username);
-                    list.push({ user: data[0], games: data[1], img: data[2], wallet: data[3] });
+    async function init() {
+        try {
+            provider = await getWorkingProvider();
+            
+            if (!provider) {
+                const listContainer = document.getElementById('streamersList');
+                if (listContainer) {
+                    listContainer.innerHTML = '<p class="error">Unable to connect to Arc Network RPC.</p>';
                 }
-                blockchainStreamers = list;
-                document.getElementById('loadingStatus').classList.add('hidden');
-                renderUI();
-                const p = new URLSearchParams(window.location.search);
-                if(p.has('streamer')) openDonate(p.get('streamer'));
-            } catch (e) { document.getElementById('loadingStatus').innerText = "Sync Error. Check network."; }
+                return;
+            }
+
+            contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+            await loadStreamers();
+        } catch (error) {
+            console.error("Initialization error:", error);
+            const listContainer = document.getElementById('streamersList');
+            if (listContainer) {
+                listContainer.innerHTML = '<p class="error">Sync Error. Check network.</p>';
+            }
+        }
+    }
+
+    async function connectWallet() {
+        if (!window.ethereum) {
+            alert('Please install MetaMask or an Ethereum-compatible browser wallet!');
+            return;
         }
 
-        async function fetchDonations() {
-            try {
-                const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-                const contract = new ethers.Contract(contractAddress, abi, provider);
-                const filter = contract.filters.Donated();
-                const events = await contract.queryFilter(filter, -1000); 
-                const container = document.getElementById('recentDonations');
-                if(events.length === 0) {
-                    container.innerHTML = '<p class="text-slate-600 text-[10px] text-center py-10 font-bold tracking-widest uppercase">No tips yet</p>';
-                    return;
-                }
-                container.innerHTML = events.slice(-20).reverse().map(e => {
-                    const { from, to, amount, donorName } = e.args;
-                    const st = blockchainStreamers.find(s => s.wallet.toLowerCase() === to.toLowerCase());
-                    const targetName = st ? st.user : "Streamer";
-                    const displayName = donorName !== '' ? donorName : from.substring(0,4)+'...'+from.substring(38);
-                    return `<div class="donation-item"><p class="text-[9px] font-bold text-slate-500 mb-1">${displayName}</p><p class="text-xs font-medium"><span class="text-cyan-400 font-black">${ethers.utils.formatEther(amount)} USDC</span> tipped to <span class="text-purple-400 font-bold">${targetName}</span></p></div>`;
-                }).join('');
-            } catch (e) { console.log("Feed sync error"); }
+        try {
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const web3Provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+            signer = web3Provider.getSigner();
+            const address = await signer.getAddress();
+            
+            const btn = document.getElementById('connectBtn');
+            if (btn) {
+                btn.innerText = address.substring(0, 6) + '...' + address.substring(38);
+            }
+            
+            contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        } catch (error) {
+            console.error("User denied wallet access:", error);
+        }
+    }
+
+    async function registerStreamer() {
+        const nameInput = document.getElementById('streamerName');
+        const statusDiv = document.getElementById('regStatus');
+        const name = nameInput ? nameInput.value.trim() : "";
+
+        if (!name) {
+            if (statusDiv) {
+                statusDiv.className = "status error";
+                statusDiv.innerText = "Please enter a channel name.";
+            }
+            return;
         }
 
-        function renderUI() {
-            const s = document.getElementById('searchInput').value.toLowerCase();
-            const f = document.getElementById('gameFilter').value;
-            const l = document.getElementById('streamerList');
-            const filtered = blockchainStreamers.filter(st => st.user.toLowerCase().includes(s) && (f === 'All' || st.games.includes(f)));
-            l.innerHTML = filtered.length === 0 ? '<div class="col-span-full text-center text-slate-600 uppercase font-bold py-20 text-xs text-white">No registered streamers yet.</div>' : filtered.map(st => `
-                <div class="glass p-10 rounded-[3rem] text-center cursor-pointer group flex flex-col items-center hover:-translate-y-3 transition-all duration-500" onclick="openDonate('${st.user}')">
-                    <img src="${st.img}" class="profile-img-card mb-8 group-hover:scale-110 transition duration-700 border-2 border-purple-500 shadow-xl">
-                    <h3 class="cyber-font font-black text-2xl mb-4 uppercase text-white tracking-tighter text-center">${st.user}</h3>
-                    <div class="flex flex-wrap justify-center gap-2 mb-10 text-white">${st.games.map(g => `<span class="game-tag">${g}</span>`).join('')}</div>
-                    <button class="w-full py-4 rounded-2xl border border-white/10 text-[9px] font-black uppercase tracking-[0.2em] group-hover:bg-purple-600 transition-all text-white text-center">Donate Stream</button>
-                </div>`).join('');
+        if (!signer) {
+            if (statusDiv) {
+                statusDiv.className = "status error";
+                statusDiv.innerText = "Please connect your wallet first.";
+            }
+            return;
         }
 
-        async function connectWallet() {
-            if (window.ethereum) {
+        try {
+            if (statusDiv) {
+                statusDiv.className = "status";
+                statusDiv.innerText = "Transaction pending...";
+            }
+
+            const tx = await contract.registerStreamer(name);
+            await tx.wait();
+
+            if (statusDiv) {
+                statusDiv.className = "status success";
+                statusDiv.innerText = "Successfully registered!";
+            }
+            loadStreamers();
+        } catch (error) {
+            console.error("Registration error:", error);
+            if (statusDiv) {
+                statusDiv.className = "status error";
+                statusDiv.innerText = "Registration failed: " + (error.reason || error.message || "Unknown error");
+            }
+        }
+    }
+
+    async function donate(streamerAddress) {
+        if (!signer) {
+            alert("Please connect your wallet to donate.");
+            return;
+        }
+
+        const amount = prompt("Enter donation amount in ARC:");
+        if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return;
+
+        try {
+            const tx = await contract.donate(streamerAddress, {
+                value: ethers.utils.parseEther(amount)
+            });
+            await tx.wait();
+            alert("Donation successful! Thank you for supporting!");
+            loadStreamers();
+        } catch (error) {
+            console.error("Donation error:", error);
+            alert("Donation failed: " + (error.reason || error.message || "Transaction reverted"));
+        }
+    }
+
+    async function loadStreamers() {
+        const listContainer = document.getElementById('streamersList');
+        if (!listContainer) return;
+
+        try {
+            const streamerAddresses = await contract.getStreamers();
+
+            if (!streamerAddresses || streamerAddresses.length === 0) {
+                listContainer.innerHTML = '<p>No registered streamers found.</p>';
+                return;
+            }
+
+            listContainer.innerHTML = '';
+
+            for (const addr of streamerAddresses) {
                 try {
-                    const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const cid = await window.ethereum.request({ method: 'eth_chainId' });
-                    if(cid !== arcChainId) { await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: arcChainId }] }); }
-                    userWallet = accs[0];
-                    document.getElementById('connectBtn').innerText = userWallet.substring(0,6) + "...";
-                    if(document.getElementById('regWallet')) document.getElementById('regWallet').value = userWallet;
-                    return true;
-                } catch (e) { return false; }
-            } else { alert("Install MetaMask!"); return false; }
-        }
+                    const streamer = await contract.streamers(addr);
+                    
+                    const isReg = streamer.isRegistered !== undefined ? streamer.isRegistered : streamer[3];
+                    const stName = streamer.name !== undefined ? streamer.name : streamer[0];
+                    const totalDon = streamer.totalDonations !== undefined ? streamer.totalDonations : streamer[2];
 
-        async function handleRegister(e) {
-            e.preventDefault(); if(!userWallet) { await connectWallet(); return; }
-            const user = document.getElementById('regUser').value, btn = document.getElementById('regBtn');
-            if (!selectedAvatar) return alert("Select a character!");
-            let finalGames = [...selectedGames]; if (document.getElementById('regOtherGames').value) finalGames.push(document.getElementById('regOtherGames').value);
-            if (finalGames.length === 0) return alert("Select a game!");
-            try {
-                btn.innerText = "Processing..."; btn.disabled = true;
-                const signer = (new ethers.providers.Web3Provider(window.ethereum)).getSigner();
-                const contract = new ethers.Contract(contractAddress, abi, signer);
-                const tx = await contract.register(user, finalGames, selectedAvatar);
-                await tx.wait(); alert("Success! Syncing list..."); await fetchStreamers(); showView('home');
-            } catch (e) { alert("Registration failed! ID taken or Wallet registered."); }
-            finally { btn.innerText = "Launch Profile on Arc Network"; btn.disabled = false; }
-        }
+                    if (isReg) {
+                        const formattedDonations = ethers.utils.formatEther(totalDon || 0);
 
-        function openDonate(u) {
-            const c = blockchainStreamers.find(st => st.user.toLowerCase() === u.toLowerCase()); if(!c) return;
-            document.getElementById('targetName').innerText = c.user; document.getElementById('targetImg').src = c.img;
-            document.getElementById('targetGames').innerHTML = c.games.map(g => `<span class="game-tag text-xs">${g}</span>`).join('');
-            const url = window.location.origin + window.location.pathname + "?streamer=" + c.user;
-            document.getElementById('qrcode').innerHTML = ""; new QRCode(document.getElementById("qrcode"), { text: url, width: 140, height: 140 });
-            showView('donate'); window.history.replaceState({}, '', url);
+                        const card = document.createElement('div');
+                        card.className = 'streamer-card';
+                        card.innerHTML = `
+                            <div>
+                                <div class="streamer-name">${escapeHtml(stName)}</div>
+                                <div class="streamer-addr">${addr}</div>
+                                <div>Total Received: <strong>${formattedDonations} ARC</strong></div>
+                            </div>
+                            <button style="margin-top: 15px;" onclick="donate('${addr}')">Donate ARC</button>
+                        `;
+                        listContainer.appendChild(card);
+                    }
+                } catch (singleStreamerErr) {
+                    console.warn("Failed to fetch streamer info for address:", addr, singleStreamerErr);
+                }
+            }
+        } catch (error) {
+            console.error("Error loading streamers from network:", error);
+            listContainer.innerHTML = '<p class="error">Sync Error. Check network.</p>';
         }
+    }
 
-        async function executeTip() {
-            if(!userWallet) { alert("Please connect your wallet!"); await connectWallet(); return; }
-            const amt = document.getElementById('tipAmount').value;
-            // اصلاح شده: تغییر innerText به textContent جهت دور زدن استایل css uppercase و حل ارور یافت نشدن آیدی
-            const sName = document.getElementById('targetName').textContent;
-            const dName = document.getElementById('donorName').value || "", tipMsg = document.getElementById('tipMsg').value || "Support!";
-            try {
-                const btn = document.getElementById('tipBtn'); btn.innerText = "Processing..."; btn.disabled = true;
-                const signer = (new ethers.providers.Web3Provider(window.ethereum)).getSigner();
-                const contract = new ethers.Contract(contractAddress, abi, signer);
-                const tx = await contract.donate(sName, dName, tipMsg, { value: ethers.utils.parseEther(amt.toString()) });
-                await tx.wait(); 
-                alert("Thank you! Successfully supported " + sName + " ☕️");
-                fetchDonations();
-            } catch (e) { alert("Error! Check balance/network."); }
-            finally { document.getElementById('tipBtn').innerText = "Donate Stream"; document.getElementById('tipBtn').disabled = false; }
-        }
+    function escapeHtml(text) {
+        if (!text) return "";
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 
-        function showView(v) { document.querySelectorAll('.view').forEach(e => e.classList.remove('active')); document.getElementById(v + 'View').classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); if(v === 'home') window.history.replaceState({}, '', window.location.pathname); }
-        function toggleGame(el, g) { if (selectedGames.includes(g)) { selectedGames = selectedGames.filter(i => i !== g); el.classList.remove('selected'); } else { selectedGames.push(g); el.classList.add('selected'); } }
-        function setupAvatarPicker() { document.getElementById('avatarPicker').innerHTML = avatarSeeds.map(s => { const u = `https://api.dicebear.com/7.x/adventurer/svg?seed=${s}`; return `<img src="${u}" class="avatar-box" onclick="selectAvatar(this, '${u}')">`; }).join(''); }
-        function selectAvatar(el, u) { document.querySelectorAll('.avatar-box').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); selectedAvatar = u; }
-        function copyPayLink() { navigator.clipboard.writeText(window.location.href); alert("Link Copied!"); }
-        window.onload = () => { setupAvatarPicker(); fetchStreamers(); fetchDonations(); };
-    </script>
+    window.addEventListener('DOMContentLoaded', init);
+</script>
 </body>
 </html>
