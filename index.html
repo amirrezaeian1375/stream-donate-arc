@@ -68,7 +68,7 @@
 
         <section id="registerView" class="view max-w-2xl mx-auto text-white">
             <div class="glass p-10 rounded-[3.5rem] shadow-2xl relative overflow-hidden">
-                <h2 class="text-3xl font-black cyber-font mb-10 text-center uppercase tracking-tight text-white text-left">Streamer Registration</h2>
+                <h2 class="text-3xl font-black cyber-font mb-10 text-center uppercase tracking-tight text-white">Streamer Registration</h2>
                 <form onsubmit="handleRegister(event)" class="space-y-10">
                     <div><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-4 text-center">Select Character</label><div id="avatarPicker" class="grid grid-cols-5 gap-4 justify-items-center"></div></div>
                     <div class="grid grid-cols-2 gap-6"><div class="space-y-2 text-left"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Unique Username</label><input type="text" id="regUser" required placeholder="handle" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white"></div><div class="space-y-2 text-left"><label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1 text-nowrap">Your Arc Wallet</label><input type="text" id="regWallet" readonly class="w-full glass p-5 rounded-2xl outline-none text-[10px] font-mono opacity-60" placeholder="Connect Wallet First"></div></div>
@@ -93,7 +93,7 @@
                     <div class="glass p-10 rounded-[3.5rem] border-white/5 shadow-2xl text-white">
                         <div class="space-y-6">
                             <input type="text" id="donorName" placeholder="Donor Name (Optional)" class="w-full glass p-5 rounded-2xl outline-none text-sm text-white">
-                            <div><label class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest px-1">Amount (Min 0.01 USDC)</label><div class="relative"><input type="number" id="tipAmount" min="0.01" step="0.01" placeholder="1.00" class="w-full glass p-6 rounded-2xl outline-none text-3xl font-black text-white"><span class="absolute right-8 top-7 text-slate-500 font-bold uppercase text-white">USDC</span></div></div>
+                            <div><label class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest px-1">Amount (ARC Token)</label><div class="relative"><input type="number" id="tipAmount" min="0.01" step="0.01" placeholder="1.00" class="w-full glass p-6 rounded-2xl outline-none text-3xl font-black text-white"><span class="absolute right-8 top-7 text-slate-500 font-bold uppercase text-white">ARC</span></div></div>
                             <textarea id="tipMsg" rows="3" placeholder="Message..." class="w-full glass p-5 rounded-2xl outline-none text-sm resize-none text-white"></textarea>
                             <button id="tipBtn" onclick="executeTip()" class="w-full neon-btn py-6 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.3em] text-white">Donate Stream</button>
                         </div>
@@ -120,7 +120,7 @@
                     <p class="text-[10px] uppercase font-bold text-slate-500 tracking-widest text-white">Built on Arc</p>
                 </div>
             </div>
-            <div class="flex gap-12 text-[10px] font-bold uppercase text-slate-500 text-white"><a href="https://x.com/amirrezaeian75" target="_blank" class="hover:text-purple-400 transition text-white">Twitter (X)</a><a href="https://github.com/amirrezaeian1375/stream-donate-arc" target="_blank" class="hover:text-purple-400 transition text-white text-left text-white">GitHub</a></div>
+            <div class="flex gap-12 text-[10px] font-bold uppercase text-slate-500 text-white"><a href="https://x.com/amirrezaeian75" target="_blank" class="hover:text-purple-400 transition text-white">Twitter (X)</a><a href="https://github.com/amirrezaeian1375/stream-donate-arc" target="_blank" class="hover:text-purple-400 transition text-white text-left">GitHub</a></div>
         </div>
         <div class="max-w-7xl mx-auto mt-16 text-center text-[9px] text-slate-700 leading-relaxed uppercase tracking-widest italic text-white">Arc is a trademark of Circle Internet Group, Inc. StreamPay is an independent project.</div>
     </footer>
@@ -128,9 +128,12 @@
     <script>
         const contractAddress = "0x2a045a73f9D41531325028a4a9D79db201393EB6";
         const arcChainId = "0x4cef52";
-        const rpcUrl = "https://rpc.testnet.arc.network";
-        
-        // اصلاح شده: رفع مشکل تداخل Tuple و بازگردانی متغیرهای مجزا
+        const rpcUrls = [
+            "https://rpc.testnet.arc.network",
+            "https://rpc-testnet.arc.network",
+            "https://arc-testnet.rpc.thirdweb.com"
+        ];
+
         const abi = [
             "function register(string memory _user, string[] memory _games, string memory _avatar) public",
             "function getStreamer(string memory _user) public view returns (string username, string[] games, string avatar, address wallet, bool isRegistered)",
@@ -142,30 +145,62 @@
         ];
 
         const avatarSeeds = ["Aria", "Milo", "Kiki", "Leo", "Luna", "Jasper", "Nova", "Felix", "Nala", "Buster", "Zoe", "Finn", "Maya", "Oscar", "Cleo"];
-        let selectedAvatar = "", selectedGames = [], userWallet = "", blockchainStreamers = [];
+        let selectedAvatar = "", selectedGames = [], userWallet = "", blockchainStreamers = [], currentTargetHandle = "";
+
+        async function getWorkingProvider() {
+            for (const rpc of rpcUrls) {
+                try {
+                    const provider = new ethers.providers.JsonRpcProvider(rpc, "any");
+                    await provider.getBlockNumber();
+                    return provider;
+                } catch (e) {
+                    console.warn("RPC connection failed, retrying with fallback RPC...", rpc);
+                }
+            }
+            if (window.ethereum) {
+                return new ethers.providers.Web3Provider(window.ethereum, "any");
+            }
+            return null;
+        }
 
         async function fetchStreamers() {
             try {
-                const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+                const provider = await getWorkingProvider();
+                if(!provider) {
+                    document.getElementById('loadingStatus').innerText = "Unable to connect to Arc Network RPC.";
+                    return;
+                }
                 const contract = new ethers.Contract(contractAddress, abi, provider);
                 const count = await contract.getStreamerCount();
                 let list = [];
                 for(let i=0; i<count.toNumber(); i++) {
-                    const username = await contract.streamerList(i);
-                    const data = await contract.getStreamer(username);
-                    list.push({ user: data[0], games: data[1], img: data[2], wallet: data[3] });
+                    try {
+                        const username = await contract.streamerList(i);
+                        const data = await contract.getStreamer(username);
+                        const uName = data.username !== undefined ? data.username : data[0];
+                        const gList = data.games !== undefined ? data.games : data[1];
+                        const imgUrl = data.avatar !== undefined ? data.avatar : data[2];
+                        const wAddr = data.wallet !== undefined ? data.wallet : data[3];
+                        list.push({ user: uName, games: gList, img: imgUrl, wallet: wAddr });
+                    } catch(err) {
+                        console.warn("Could not load streamer index:", i, err);
+                    }
                 }
                 blockchainStreamers = list;
                 document.getElementById('loadingStatus').classList.add('hidden');
                 renderUI();
                 const p = new URLSearchParams(window.location.search);
                 if(p.has('streamer')) openDonate(p.get('streamer'));
-            } catch (e) { document.getElementById('loadingStatus').innerText = "Sync Error. Check network."; }
+            } catch (e) { 
+                console.error("Fetch streamers error:", e);
+                document.getElementById('loadingStatus').innerText = "Sync Error. Check network."; 
+            }
         }
 
         async function fetchDonations() {
             try {
-                const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+                const provider = await getWorkingProvider();
+                if(!provider) return;
                 const contract = new ethers.Contract(contractAddress, abi, provider);
                 const filter = contract.filters.Donated();
                 const events = await contract.queryFilter(filter, -1000); 
@@ -178,10 +213,10 @@
                     const { from, to, amount, donorName } = e.args;
                     const st = blockchainStreamers.find(s => s.wallet.toLowerCase() === to.toLowerCase());
                     const targetName = st ? st.user : "Streamer";
-                    const displayName = donorName !== '' ? donorName : from.substring(0,4)+'...'+from.substring(38);
-                    return `<div class="donation-item"><p class="text-[9px] font-bold text-slate-500 mb-1">${displayName}</p><p class="text-xs font-medium"><span class="text-cyan-400 font-black">${ethers.utils.formatEther(amount)} USDC</span> tipped to <span class="text-purple-400 font-bold">${targetName}</span></p></div>`;
+                    const displayName = donorName !== '' ? donorName : (from.substring(0,4)+'...'+from.substring(38));
+                    return `<div class="donation-item"><p class="text-[9px] font-bold text-slate-500 mb-1">${escapeHtml(displayName)}</p><p class="text-xs font-medium"><span class="text-cyan-400 font-black">${ethers.utils.formatEther(amount)} ARC</span> tipped to <span class="text-purple-400 font-bold">${escapeHtml(targetName)}</span></p></div>`;
                 }).join('');
-            } catch (e) { console.log("Feed sync error"); }
+            } catch (e) { console.log("Feed sync error", e); }
         }
 
         function renderUI() {
@@ -190,10 +225,10 @@
             const l = document.getElementById('streamerList');
             const filtered = blockchainStreamers.filter(st => st.user.toLowerCase().includes(s) && (f === 'All' || st.games.includes(f)));
             l.innerHTML = filtered.length === 0 ? '<div class="col-span-full text-center text-slate-600 uppercase font-bold py-20 text-xs text-white">No registered streamers yet.</div>' : filtered.map(st => `
-                <div class="glass p-10 rounded-[3rem] text-center cursor-pointer group flex flex-col items-center hover:-translate-y-3 transition-all duration-500" onclick="openDonate('${st.user}')">
-                    <img src="${st.img}" class="profile-img-card mb-8 group-hover:scale-110 transition duration-700 border-2 border-purple-500 shadow-xl">
-                    <h3 class="cyber-font font-black text-2xl mb-4 uppercase text-white tracking-tighter text-center">${st.user}</h3>
-                    <div class="flex flex-wrap justify-center gap-2 mb-10 text-white">${st.games.map(g => `<span class="game-tag">${g}</span>`).join('')}</div>
+                <div class="glass p-10 rounded-[3rem] text-center cursor-pointer group flex flex-col items-center hover:-translate-y-3 transition-all duration-500" onclick="openDonate('${escapeHtml(st.user)}')">
+                    <img src="${escapeHtml(st.img)}" class="profile-img-card mb-8 group-hover:scale-110 transition duration-700 border-2 border-purple-500 shadow-xl">
+                    <h3 class="cyber-font font-black text-2xl mb-4 uppercase text-white tracking-tighter text-center">${escapeHtml(st.user)}</h3>
+                    <div class="flex flex-wrap justify-center gap-2 mb-10 text-white">${st.games.map(g => `<span class="game-tag">${escapeHtml(g)}</span>`).join('')}</div>
                     <button class="w-full py-4 rounded-2xl border border-white/10 text-[9px] font-black uppercase tracking-[0.2em] group-hover:bg-purple-600 transition-all text-white text-center">Donate Stream</button>
                 </div>`).join('');
         }
@@ -202,8 +237,11 @@
             if (window.ethereum) {
                 try {
                     const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const cid = await window.ethereum.request({ method: 'eth_chainId' });
-                    if(cid !== arcChainId) { await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: arcChainId }] }); }
+                    try {
+                        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: arcChainId }] });
+                    } catch(switchErr) {
+                        console.warn("Chain switch omitted or ignored by user", switchErr);
+                    }
                     userWallet = accs[0];
                     document.getElementById('connectBtn').innerText = userWallet.substring(0,6) + "...";
                     if(document.getElementById('regWallet')) document.getElementById('regWallet').value = userWallet;
@@ -213,53 +251,114 @@
         }
 
         async function handleRegister(e) {
-            e.preventDefault(); if(!userWallet) { await connectWallet(); return; }
+            e.preventDefault(); 
+            if(!userWallet) { await connectWallet(); if(!userWallet) return; }
             const user = document.getElementById('regUser').value, btn = document.getElementById('regBtn');
             if (!selectedAvatar) return alert("Select a character!");
-            let finalGames = [...selectedGames]; if (document.getElementById('regOtherGames').value) finalGames.push(document.getElementById('regOtherGames').value);
+            let finalGames = [...selectedGames]; 
+            if (document.getElementById('regOtherGames').value) finalGames.push(document.getElementById('regOtherGames').value);
             if (finalGames.length === 0) return alert("Select a game!");
             try {
                 btn.innerText = "Processing..."; btn.disabled = true;
-                const signer = (new ethers.providers.Web3Provider(window.ethereum)).getSigner();
+                const signer = (new ethers.providers.Web3Provider(window.ethereum, "any")).getSigner();
                 const contract = new ethers.Contract(contractAddress, abi, signer);
                 const tx = await contract.register(user, finalGames, selectedAvatar);
-                await tx.wait(); alert("Success! Syncing list..."); await fetchStreamers(); showView('home');
-            } catch (e) { alert("Registration failed! ID taken or Wallet registered."); }
+                await tx.wait(); 
+                alert("Success! Syncing list..."); 
+                await fetchStreamers(); 
+                showView('home');
+            } catch (e) { 
+                console.error("Registration failed:", e);
+                alert("Registration failed! ID taken or Wallet registered."); 
+            }
             finally { btn.innerText = "Launch Profile on Arc Network"; btn.disabled = false; }
         }
 
         function openDonate(u) {
-            const c = blockchainStreamers.find(st => st.user.toLowerCase() === u.toLowerCase()); if(!c) return;
-            document.getElementById('targetName').innerText = c.user; document.getElementById('targetImg').src = c.img;
-            document.getElementById('targetGames').innerHTML = c.games.map(g => `<span class="game-tag text-xs">${g}</span>`).join('');
-            const url = window.location.origin + window.location.pathname + "?streamer=" + c.user;
-            document.getElementById('qrcode').innerHTML = ""; new QRCode(document.getElementById("qrcode"), { text: url, width: 140, height: 140 });
-            showView('donate'); window.history.replaceState({}, '', url);
+            const c = blockchainStreamers.find(st => st.user.toLowerCase() === u.toLowerCase()); 
+            if(!c) return;
+            currentTargetHandle = c.user;
+            document.getElementById('targetName').innerText = c.user; 
+            document.getElementById('targetImg').src = c.img;
+            document.getElementById('targetGames').innerHTML = c.games.map(g => `<span class="game-tag text-xs">${escapeHtml(g)}</span>`).join('');
+            const url = window.location.origin + window.location.pathname + "?streamer=" + encodeURIComponent(c.user);
+            document.getElementById('qrcode').innerHTML = ""; 
+            new QRCode(document.getElementById("qrcode"), { text: url, width: 140, height: 140 });
+            showView('donate'); 
+            window.history.replaceState({}, '', url);
         }
 
         async function executeTip() {
             if(!userWallet) { alert("Please connect your wallet!"); await connectWallet(); return; }
             const amt = document.getElementById('tipAmount').value;
-            // اصلاح شده: تغییر innerText به textContent جهت دور زدن استایل css uppercase و حل ارور یافت نشدن آیدی
-            const sName = document.getElementById('targetName').textContent;
+            const sName = currentTargetHandle || document.getElementById('targetName').innerText;
             const dName = document.getElementById('donorName').value || "", tipMsg = document.getElementById('tipMsg').value || "Support!";
+            
+            if (!amt || isNaN(amt) || parseFloat(amt) <= 0) {
+                alert("Please enter a valid amount.");
+                return;
+            }
+
             try {
                 const btn = document.getElementById('tipBtn'); btn.innerText = "Processing..."; btn.disabled = true;
-                const signer = (new ethers.providers.Web3Provider(window.ethereum)).getSigner();
+                const signer = (new ethers.providers.Web3Provider(window.ethereum, "any")).getSigner();
                 const contract = new ethers.Contract(contractAddress, abi, signer);
                 const tx = await contract.donate(sName, dName, tipMsg, { value: ethers.utils.parseEther(amt.toString()) });
                 await tx.wait(); 
                 alert("Thank you! Successfully supported " + sName + " ☕️");
                 fetchDonations();
-            } catch (e) { alert("Error! Check balance/network."); }
+            } catch (e) { 
+                console.error("Donation execution failed:", e);
+                alert("Error! Check balance/network."); 
+            }
             finally { document.getElementById('tipBtn').innerText = "Donate Stream"; document.getElementById('tipBtn').disabled = false; }
         }
 
-        function showView(v) { document.querySelectorAll('.view').forEach(e => e.classList.remove('active')); document.getElementById(v + 'View').classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); if(v === 'home') window.history.replaceState({}, '', window.location.pathname); }
-        function toggleGame(el, g) { if (selectedGames.includes(g)) { selectedGames = selectedGames.filter(i => i !== g); el.classList.remove('selected'); } else { selectedGames.push(g); el.classList.add('selected'); } }
-        function setupAvatarPicker() { document.getElementById('avatarPicker').innerHTML = avatarSeeds.map(s => { const u = `https://api.dicebear.com/7.x/adventurer/svg?seed=${s}`; return `<img src="${u}" class="avatar-box" onclick="selectAvatar(this, '${u}')">`; }).join(''); }
-        function selectAvatar(el, u) { document.querySelectorAll('.avatar-box').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); selectedAvatar = u; }
-        function copyPayLink() { navigator.clipboard.writeText(window.location.href); alert("Link Copied!"); }
+        function showView(v) { 
+            document.querySelectorAll('.view').forEach(e => e.classList.remove('active')); 
+            document.getElementById(v + 'View').classList.add('active'); 
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+            if(v === 'home') window.history.replaceState({}, '', window.location.pathname); 
+        }
+
+        function toggleGame(el, g) { 
+            if (selectedGames.includes(g)) { 
+                selectedGames = selectedGames.filter(i => i !== g); 
+                el.classList.remove('selected'); 
+            } else { 
+                selectedGames.push(g); 
+                el.classList.add('selected'); 
+            } 
+        }
+
+        function setupAvatarPicker() { 
+            document.getElementById('avatarPicker').innerHTML = avatarSeeds.map(s => { 
+                const u = `https://api.dicebear.com/7.x/adventurer/svg?seed=${s}`; 
+                return `<img src="${u}" class="avatar-box" onclick="selectAvatar(this, '${u}')">`; 
+            }).join(''); 
+        }
+
+        function selectAvatar(el, u) { 
+            document.querySelectorAll('.avatar-box').forEach(i => i.classList.remove('selected')); 
+            el.classList.add('selected'); 
+            selectedAvatar = u; 
+        }
+
+        function copyPayLink() { 
+            navigator.clipboard.writeText(window.location.href); 
+            alert("Link Copied!"); 
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         window.onload = () => { setupAvatarPicker(); fetchStreamers(); fetchDonations(); };
     </script>
 </body>
